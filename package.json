@@ -4,7 +4,8 @@
   "description": "",
   "node": "16.14.2",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "buid": "node index.js"
   },
   "author": "",
   "license": "ISC",
