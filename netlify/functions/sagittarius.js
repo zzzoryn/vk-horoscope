@@ -2,8 +2,8 @@ const { schedule } = require("@netlify/functions");
 const postVkWall = require('../../src/postVkWall');
 
 const handler = async function() {
-  const response = await postVkWall('sagittarius');
-  console.log(response);
+  // const response = await postVkWall('sagittarius');
+  // console.log(response);
 
   return {
     statusCode: 200,
