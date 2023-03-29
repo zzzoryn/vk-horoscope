@@ -13,8 +13,6 @@ const postVkWall = async function (name) {
     return new Error(`Horoscope "${name}" does not exist`);
   }
 
-  console.log(process.env.VK_API_TOKEN);
-
   const vk = new VK({token: process.env.VK_API_TOKEN});
 
   const parser = new xml2js.Parser({});
