@@ -2,11 +2,12 @@ const { schedule } = require("@netlify/functions");
 const postVkWall = require('../../src/postVkWall');
 
 const handler = async function() {
-  await postVkWall('leo');
+  const response = await postVkWall('leo');
+  console.log(response);
 
   return {
     statusCode: 200,
   };
 };
 
-exports.handler = schedule("4 6 * * *", handler);
+exports.handler = schedule("34 7 * * *", handler);
