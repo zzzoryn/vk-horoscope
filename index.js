@@ -1,8 +1,7 @@
 require('dotenv').config();
 
-const postVkWall = require('./src/postVkWall');
+const postDailyCommonWalls = require('./src/post/postDailyCommonWalls');
 
 (async function() {
-  const response = await postVkWall('gemini');
-  console.log(response);
+  await postDailyCommonWalls('gemini');
 })();

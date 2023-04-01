@@ -1,71 +1,66 @@
-const horoXmlUrl = 'https://ignio.com/r/export/utf/xml/daily/com.xml';
+module.exports.DAILY_COMMON_HORO_XML_URL = 'https://ignio.com/r/export/utf/xml/daily/com.xml';
+module.exports.DAILY_BUSINESS_HORO_XML_URL = 'https://ignio.com/r/export/utf/xml/daily/bus.xml';
+module.exports.DAILY_LOVE_HORO_XML_URL = 'https://ignio.com/r/export/utf/xml/daily/lov.xml';
+module.exports.DAILY_HEALTH_HORO_XML_URL = 'https://ignio.com/r/export/utf/xml/daily/hea.xml';
+module.exports.DAILY_EROTIC_HORO_XML_URL = 'https://ignio.com/r/export/utf/xml/daily/ero.xml';
+module.exports.DAILY_ANTI_HORO_XML_URL = 'https://ignio.com/r/export/utf/xml/daily/anti.xml';
 
-const months = ['января', 'февряля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+module.exports.WEEKLY_HORO_XML_URL = 'https://ignio.com/r/export/utf/xml/weekly/cur.xml';
 
-const horoscopes = [{
+module.exports.DAILY_HORO_TYPES = ['common', 'business', 'love', 'health', 'erotic', 'anti'];
+module.exports.WEEKLY_HORO_TYPES = ['common', 'business', 'love', 'health', 'erotic'];
+module.exports.MONTHS = ['января', 'февряля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+
+module.exports.GROUP_IDS = {
+  common: 30706989,
+  aries: 219706249,
+  taurus: 219706517,
+  gemini: 219706624,
+  cancer: 219706815,
+  leo: 219706948,
+  virgo: 219707830,
+  libra: 219707917,
+  scorpio: 219708184,
+  sagittarius: 219708260,
+  capricorn: 219708349,
+  aquarius: 219708382,
+  pisces: 219708457
+};
+
+module.exports.HOROSCOPES = [{
   name: 'aries',
-  title: '&#9800; Овен',
-  publishTime: '21:00:00',
-  bgImage: 'https://i.postimg.cc/26yHMZqS/image.png'
+  title: 'Овен'
 }, {
   name: 'taurus',
-  title: '&#9801; Телец',
-  publishTime: '21:10:00',
-  bgImage: 'https://i.postimg.cc/mZHxgvD2/image.png'
+  title: 'Телец'
 }, {
   name: 'gemini',
-  title: '&#9802; Близнецы',
-  publishTime: '21:20:00',
-  bgImage: 'https://i.postimg.cc/j5f8Rrhp/image.png'
+  title: 'Близнецы'
 }, {
   name: 'cancer',
-  title: '&#9803; Рак',
-  publishTime: '21:30:00',
-  bgImage: 'https://i.postimg.cc/qqLx7B65/image.png'
+  title: 'Рак'
 }, {
   name: 'leo',
-  title: '&#9804; Лев',
-  publishTime: '21:40:00',
-  bgImage: 'https://i.postimg.cc/1t0pWRB3/image.png'
+  title: 'Лев'
 }, {
   name: 'virgo',
-  title: '&#9805; Дева',
-  publishTime: '21:50:00',
-  bgImage: 'https://i.postimg.cc/6p95RW2h/image.png'
+  title: 'Дева'
 }, {
   name: 'libra',
-  title: '&#9806; Весы',
-  publishTime: '22:00:00',
-  bgImage: 'https://i.postimg.cc/TYBZmGk4/image.png'
+  title: 'Весы'
 }, {
   name: 'scorpio',
-  title: '&#9807; Скорпион',
-  publishTime: '22:10:00',
-  bgImage: 'https://i.postimg.cc/XvkhT5nR/image.png'
+  title: 'Скорпион'
 }, {
   name: 'sagittarius',
-  title: '&#9808; Стрелец',
-  publishTime: '22:20:00',
-  bgImage: 'https://i.postimg.cc/JndTLcv2/image.png'
+  title: 'Стрелец'
 }, {
   name: 'capricorn',
-  title: '&#9809; Козерог',
-  publishTime: '22:30:00',
-  bgImage: 'https://i.postimg.cc/vm2jYs6h/image.png'
+  title: 'Козерог'
 }, {
   name: 'aquarius',
-  title: '&#9810; Водолей',
-  publishTime: '22:40:00',
-  bgImage: 'https://i.postimg.cc/pdrG161F/image.png'
+  title: 'Водолей'
 }, {
   name: 'pisces',
-  title: '&#9811; Рыбы',
-  publishTime: '22:50:00',
-  bgImage: 'https://i.postimg.cc/nVBd57T0/image.png'
+  title: 'Рыбы'
 }];
-
-module.exports = {
-  horoXmlUrl,
-  months,
-  horoscopes
-}
