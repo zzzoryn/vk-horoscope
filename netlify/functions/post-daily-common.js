@@ -2,12 +2,10 @@ const postDailyCommonWalls = require('../../src/post/postDailyCommonWalls');
 const {HOROSCOPES} = require('../../src/constants');
 
 exports.handler = async function(event) {
-
   try {
-    const body = JSON.parse(event.body);
-    const index = parseInt(body.index);
+    const index = parseInt(event.queryStringParameters.index);
 
-    if (!index || index > 11) {
+    if (!(index + 1) || index < 0 || index > 11) {
       return {
         statusCode: 500,
         body: JSON.stringify({status: 'error', message: 'Index must be a number from 0 to 11'})
