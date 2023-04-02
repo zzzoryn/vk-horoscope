@@ -13,6 +13,11 @@ module.exports.MONTHS = ['января', 'февряля', 'марта', 'апр
 
 module.exports.GROUP_IDS = {
   common: 30706989,
+  business: 219730088,
+  health: 219731279,
+  love: 219734994,
+  erotic: 219735042,
+
   aries: 219706249,
   taurus: 219706517,
   gemini: 219706624,

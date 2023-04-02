@@ -39,7 +39,7 @@ const getDailyCommonTileImage = async function({name, date, text, daily, busines
         input: textPng
       },
       {
-        top: 910,
+        top: 916,
         left: 540 - date.length * 22 / 2,
         input: {
           text: {
