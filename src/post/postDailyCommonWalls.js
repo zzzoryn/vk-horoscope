@@ -29,22 +29,28 @@ const postDailyCommonWalls = async function(name) {
 
   const tileImage = await getDailyCommonTileImage(data);
 
-  const attachment = await vk.upload.wallPhoto({
-    group_id: GROUP_IDS.common,
-    source: {value: tileImage}
-  });
+  const attachments = await Promise.all([
+    vk.upload.wallPhoto({
+      group_id: GROUP_IDS.common,
+      source: {value: tileImage}
+    }),
+    vk.upload.wallPhoto({
+      group_id: GROUP_IDS[name],
+      source: {value: tileImage}
+    })
+  ]);
 
   return await Promise.all([
     vk.api.wall.post({
       owner_id: GROUP_IDS.common * -1,
       message: `${horoscope.title}, гороскоп на ${data.date}:`,
-      attachments: `photo${attachment.ownerId}_${attachment.id}`,
+      attachments: `photo${attachments[0].ownerId}_${attachments[0].id}`,
       publish_date: new Date(new Date().toDateString() + ` 23:00:00 +0300`).getTime() / 1000 - (60 * 5 * horoscope.index)
     }),
     vk.api.wall.post({
       owner_id: GROUP_IDS[name] * -1,
       message: `${horoscope.title}, гороскоп на ${data.date}:`,
-      attachments: `photo${attachment.ownerId}_${attachment.id}`,
+      attachments: `photo${attachments[1].ownerId}_${attachments[1].id}`,
       publish_date: new Date(new Date().toDateString() + ` 22:00:00 +0300`).getTime() / 1000
     })
   ]);
