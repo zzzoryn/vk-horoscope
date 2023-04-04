@@ -54,14 +54,14 @@ const postDailyWalls = async function(type, name) {
     vk.api.wall.post({
       owner_id: GROUP_IDS[type] * -1,
       from_group: 1,
-      message: `${horoscope.title}, бизнес гороскоп на ${data.date}:`,
+      message: `${horoscope.title}, гороскоп на ${data.date}:`,
       attachments: `photo${attachments[0].ownerId}_${attachments[0].id}`,
       publish_date: new Date(new Date().toDateString() + ` 23:00:00 +0300`).getTime() / 1000 - (60 * 5 * horoscope.index)
     }),
     vk.api.wall.post({
       owner_id: GROUP_IDS[name] * -1,
       from_group: 1,
-      message: `${horoscope.title}, бизнес гороскоп на ${data.date}:`,
+      message: `${horoscope.title}, гороскоп на ${data.date}:`,
       attachments: [`photo${attachments[1].ownerId}_${attachments[1].id}`, `photo${attachments[2].ownerId}_${attachments[2].id}`],
       publish_date: publishDate[type]
     })
