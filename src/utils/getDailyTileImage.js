@@ -1,8 +1,8 @@
 const sharp = require('sharp');
 const asyncFetch = require('./asyncFetch');
 
-const getDailyBusinessTileImage = async function({name, date, text}) {
-  const bgImageUrl = `https://cdn.jsdelivr.net/gh/zzzoryn/sdn-images@master/vk-horoscope/business-${name}-bg.jpg`;
+const getDailyTileImage = async function({type, name, date, text}) {
+  const bgImageUrl = `https://cdn.jsdelivr.net/gh/zzzoryn/sdn-images@master/vk-horoscope/${type}-${name}-bg.jpg`;
   const background = await asyncFetch(bgImageUrl);
 
   const texWidth = 940;
@@ -56,4 +56,4 @@ const getDailyBusinessTileImage = async function({name, date, text}) {
     .toBuffer();
 };
 
-module.exports = getDailyBusinessTileImage;
+module.exports = getDailyTileImage;

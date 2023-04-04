@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const postDailyBusinessWalls = require('./src/post/postDailyBusinessWalls');
+const postDailyBusinessWalls = require('./src/post/postDailyWalls');
 
 (async function() {
   // const data = {
