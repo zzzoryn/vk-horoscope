@@ -32,6 +32,13 @@ module.exports.GROUP_IDS = {
   pisces: 219708457
 };
 
+module.exports.COLORS = {
+  business: '#BDC8D9',
+  love: '#D2ABC8',
+  health: '#C3D6D1',
+  erotic: '#D2ABC8'
+};
+
 module.exports.HOROSCOPES = [{
   name: 'aries',
   title: 'Овен'

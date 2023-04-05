@@ -1,5 +1,6 @@
 const sharp = require('sharp');
 const asyncFetch = require('./asyncFetch');
+const {COLORS} = require('../constants');
 
 const getDailyTileImage = async function({type, name, date, text}) {
   const bgImageUrl = `https://cdn.jsdelivr.net/gh/zzzoryn/sdn-images@master/vk-horoscope/${type}-${name}-bg.jpg`;
@@ -20,7 +21,7 @@ const getDailyTileImage = async function({type, name, date, text}) {
       {
         input: {
           text: {
-            text: `<span foreground="#BDC8D9">${text}</span>`,
+            text: `<span foreground="${COLORS[type]}">${text}</span>`,
             font: 'sans-serif',
             width: texWidth,
             height: textHeight,
@@ -43,7 +44,7 @@ const getDailyTileImage = async function({type, name, date, text}) {
         left: 540 - date.length * 22 / 2,
         input: {
           text: {
-            text: `<span foreground="#BDC8D9">${date}</span>`,
+            text: `<span foreground="${COLORS[type]}">${date}</span>`,
             font: 'sans-serif',
             width: date.length * 22,
             height: 50,
