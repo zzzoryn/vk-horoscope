@@ -9,7 +9,7 @@ module.exports.WEEKLY_HORO_XML_URL = 'https://ignio.com/r/export/utf/xml/weekly/
 
 module.exports.DAILY_HORO_TYPES = ['common', 'business', 'love', 'health', 'erotic', 'anti'];
 module.exports.WEEKLY_HORO_TYPES = ['common', 'business', 'love', 'health', 'erotic'];
-module.exports.MONTHS = ['января', 'февряля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+module.exports.MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 
 module.exports.GROUP_IDS = {
   common: 30706989,
@@ -33,46 +33,66 @@ module.exports.GROUP_IDS = {
 };
 
 module.exports.COLORS = {
-  business: '#BDC8D9',
-  love: '#D2ABC8',
-  health: '#C3D6D1',
-  erotic: '#D2ABC8'
+  business: '#bdc8d9',
+  love: '#d2abc8',
+  health: '#c3d6d1',
+  erotic: '#d2abc8'
+};
+
+module.exports.TYPES_PUBLISH = {
+  common: '22:00:00',
+  business: '22:20:00',
+  love: '22:40:00',
+  health: '23:00:00',
+  erotic: '23:20:00',
 };
 
 module.exports.HOROSCOPES = [{
   name: 'aries',
-  title: 'Овен'
+  title: 'Овен',
+  publish: '22:55:00'
 }, {
   name: 'taurus',
-  title: 'Телец'
+  title: 'Телец',
+  publish: '22:50:00'
 }, {
   name: 'gemini',
-  title: 'Близнецы'
+  title: 'Близнецы',
+  publish: '22:45:00'
 }, {
   name: 'cancer',
-  title: 'Рак'
+  title: 'Рак',
+  publish: '22:40:00'
 }, {
   name: 'leo',
-  title: 'Лев'
+  title: 'Лев',
+  publish: '22:35:00'
 }, {
   name: 'virgo',
-  title: 'Дева'
+  title: 'Дева',
+  publish: '22:30:00'
 }, {
   name: 'libra',
-  title: 'Весы'
+  title: 'Весы',
+  publish: '22:25:00'
 }, {
   name: 'scorpio',
-  title: 'Скорпион'
+  title: 'Скорпион',
+  publish: '22:20:00'
 }, {
   name: 'sagittarius',
-  title: 'Стрелец'
+  title: 'Стрелец',
+  publish: '22:15:00'
 }, {
   name: 'capricorn',
-  title: 'Козерог'
+  title: 'Козерог',
+  publish: '22:10:00'
 }, {
   name: 'aquarius',
-  title: 'Водолей'
+  title: 'Водолей',
+  publish: '22:05:00'
 }, {
   name: 'pisces',
-  title: 'Рыбы'
+  title: 'Рыбы',
+  publish: '22:00:00'
 }];

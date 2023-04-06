@@ -1,7 +1,7 @@
 const {VK} = require('vk-io');
 const getSheetDoc = require('../utils/getSheetDoc');
 const getDate = require('../utils/getDate');
-const {HOROSCOPES, GROUP_IDS} = require('../constants');
+const {HOROSCOPES, GROUP_IDS, TYPES_PUBLISH} = require('../constants');
 const getDailyCommonTileImage = require('../utils/getDailyCommonTileImage');
 
 const postDailyCommonWalls = async function(name) {
@@ -46,14 +46,14 @@ const postDailyCommonWalls = async function(name) {
       from_group: 1,
       message: `${horoscope.title}, гороскоп на ${data.date}:`,
       attachments: `photo${attachments[0].ownerId}_${attachments[0].id}`,
-      publish_date: new Date(new Date().toDateString() + ` 23:00:00 +0300`).getTime() / 1000 - (60 * 5 * horoscope.index)
+      publish_date: new Date(new Date().toDateString() + ` ${horoscope.publish} +0300`).getTime() / 1000
     }),
     vk.api.wall.post({
       owner_id: GROUP_IDS[name] * -1,
       from_group: 1,
       message: `${horoscope.title}, гороскоп на ${data.date}:`,
       attachments: `photo${attachments[1].ownerId}_${attachments[1].id}`,
-      publish_date: new Date(new Date().toDateString() + ` 22:00:00 +0300`).getTime() / 1000
+      publish_date: new Date(new Date().toDateString() + ` ${TYPES_PUBLISH.common} +0300`).getTime() / 1000
     })
   ]);
 
