@@ -2,7 +2,7 @@ const xml2js = require('xml2js');
 
 const getSheetDoc = require('../utils/getSheetDoc');
 const asyncFetch = require('../utils/asyncFetch');
-const {WEEKLY_HORO_XML_URL, HOROSCOPES, WEEKLY_HORO_TYPES} = require('../constants');
+const {WEEKLY_HORO_XML_URL, HOROSCOPES, TYPES} = require('../constants');
 
 const fetchWeeklyHoroData = async function() {
   const doc = await getSheetDoc();
@@ -15,8 +15,8 @@ const fetchWeeklyHoroData = async function() {
   });
 
   HOROSCOPES.forEach(({name}, i) => {
-    for (type of WEEKLY_HORO_TYPES) {
-      rows[i][type] = weeklyHoroscope.horo[name][0][type][0].replace(/[\n\r]/g, '');
+    for (type of TYPES) {
+      rows[i][type.name] = weeklyHoroscope.horo[name][0][type.name][0].replace(/[\n\r]/g, '');
     }
   });
 

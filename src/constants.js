@@ -7,92 +7,84 @@ module.exports.DAILY_ANTI_HORO_XML_URL = 'https://ignio.com/r/export/utf/xml/dai
 
 module.exports.WEEKLY_HORO_XML_URL = 'https://ignio.com/r/export/utf/xml/weekly/cur.xml';
 
-module.exports.DAILY_HORO_TYPES = ['common', 'business', 'love', 'health', 'erotic', 'anti'];
-module.exports.WEEKLY_HORO_TYPES = ['common', 'business', 'love', 'health', 'erotic'];
 module.exports.MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 
-module.exports.GROUP_IDS = {
-  common: 30706989,
-  business: 219730088,
-  health: 219731279,
-  love: 219734994,
-  erotic: 219735042,
-
-  aries: 219706249,
-  taurus: 219706517,
-  gemini: 219706624,
-  cancer: 219706815,
-  leo: 219706948,
-  virgo: 219707830,
-  libra: 219707917,
-  scorpio: 219708184,
-  sagittarius: 219708260,
-  capricorn: 219708349,
-  aquarius: 219708382,
-  pisces: 219708457
-};
-
 module.exports.COLORS = {
+  common: '#d7be8a',
   business: '#bdc8d9',
   love: '#d2abc8',
   health: '#c3d6d1',
   erotic: '#d2abc8'
 };
 
-module.exports.TYPES_PUBLISH = {
-  common: '22:00:00',
-  business: '22:20:00',
-  love: '22:40:00',
-  health: '23:00:00',
-  erotic: '23:20:00',
-};
+module.exports.TYPES = [{
+  name: 'common',
+  title: 'Гороскоп',
+  groupId: 30706989
+}, {
+  name: 'business',
+  title: 'Бизнес гороскоп',
+  groupId: 219730088
+}, {
+  name: 'love',
+  title: 'Любовный гороскоп',
+  groupId: 219734994
+}, {
+  name: 'health',
+  title: 'Гороскоп здоровья',
+  groupId: 219731279
+}, {
+  name: 'erotic',
+  title: 'Эротический гороскоп',
+  groupId: 219735042
+}];
 
 module.exports.HOROSCOPES = [{
   name: 'aries',
   title: 'Овен',
-  publish: '22:55:00'
+  groupId: 219706249
 }, {
   name: 'taurus',
   title: 'Телец',
-  publish: '22:50:00'
+  groupId: 219706517
 }, {
   name: 'gemini',
   title: 'Близнецы',
-  publish: '22:45:00'
+  groupId: 219706624
 }, {
   name: 'cancer',
   title: 'Рак',
-  publish: '22:40:00'
+  groupId: 219706815
 }, {
   name: 'leo',
   title: 'Лев',
-  publish: '22:35:00'
+  groupId: 219706948
 }, {
   name: 'virgo',
   title: 'Дева',
-  publish: '22:30:00'
+  groupId: 219707830
 }, {
   name: 'libra',
   title: 'Весы',
-  publish: '22:25:00'
+  groupId: 219707917
 }, {
   name: 'scorpio',
   title: 'Скорпион',
-  publish: '22:20:00'
+  groupId: 219708184
 }, {
   name: 'sagittarius',
   title: 'Стрелец',
-  publish: '22:15:00'
+  groupId: 219708260
 }, {
   name: 'capricorn',
   title: 'Козерог',
-  publish: '22:10:00'
+  groupId: 219708349
 }, {
   name: 'aquarius',
   title: 'Водолей',
-  publish: '22:05:00'
+  groupId: 219708382
 }, {
   name: 'pisces',
   title: 'Рыбы',
-  publish: '22:00:00'
+  groupId: 219708457
 }];

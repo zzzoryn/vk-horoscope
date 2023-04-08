@@ -1,65 +1,66 @@
 const {VK} = require('vk-io');
 const getSheetDoc = require('../utils/getSheetDoc');
+const {TYPES, HOROSCOPES} = require('../constants');
 const getDate = require('../utils/getDate');
-const {HOROSCOPES, GROUP_IDS, TYPES_PUBLISH} = require('../constants');
-const getDailyTileImage = require('../utils/getDailyTileImage');
-const getDailyTileImage2 = require('../utils/getDailyTileImage2');
-const getDailyTileImage3 = require('../utils/getDailyTileImage3');
 
-const postDailyWalls = async function(type, name) {
+const postStep1 = async function(vk, rows) {
+  return Promise.all(TYPES.map(type => vk.api.wall.post({
+    owner_id: type.groupId * -1,
+    from_group: 1,
+    message: `${type.title} на ${getDate()} (Часть 2):`,
+    attachments: [6, 7, 8, 9, 10, 11].map(ind => rows[ind][`${type.name}_image`])
+  })));
+};
+
+const postStep2 = async function(vk, rows) {
+  return Promise.all(TYPES.map(type => vk.api.wall.post({
+    owner_id: type.groupId * -1,
+    from_group: 1,
+    message: `${type.title} на ${getDate()} (Часть 1):`,
+    attachments: [0, 1, 2, 3, 4, 5].map(ind => rows[ind][`${type.name}_image`])
+  })));
+};
+
+const postStep3 = async function(vk, rows, indexes) {
+  return Promise.all(indexes.map(index => vk.api.wall.post({
+    owner_id: HOROSCOPES[index].groupId * -1,
+    from_group: 1,
+    message: `Гороскоп на ${getDate()}\n
+Бизнес: ${rows[index].business}\n
+Любовь: ${rows[index].love}\n
+Здоровье: ${rows[index].health}\n
+Постель: ${rows[index].erotic}\n
+#гороскоп #${HOROSCOPES[index].title.toLowerCase()} #бизнес #любовь #здоровье #постель\`,`,
+    attachments: rows[index][`common_image`]
+  })));
+};
+
+/**
+ * @param stepNumber {Number}
+ * @return {Promise<Awaited<*>[]>}
+ */
+const postDailyWalls = async function(stepNumber) {
   const vk = new VK({token: process.env.VK_API_TOKEN});
 
   const doc = await getSheetDoc();
   const sheet = doc.sheetsByIndex[0];
   const rows = await sheet.getRows();
 
-  const horoscope = HOROSCOPES
-    .map((item, index) => Object.assign({}, item, {index}))
-    .filter(item => item.name === name)[0];
+  if (stepNumber === 1) {
+    return await postStep1(vk, rows);
+  }
 
-  const data = {
-    type,
-    name,
-    date: getDate(),
-    text: rows[horoscope.index][type]
-  };
+  if (stepNumber === 2) {
+    return await postStep2(vk, rows);
+  }
 
-  const tileImage1 = await getDailyTileImage(data);
-  const tileImage2 = await getDailyTileImage2(data);
-  const tileImage3 = await getDailyTileImage3(data);
+  if (stepNumber === 3) {
+    return await postStep3(vk, rows, [0, 1, 2, 3, 4, 5]);
+  }
 
-  const attachments = await Promise.all([
-    vk.upload.wallPhoto({
-      group_id: GROUP_IDS[type],
-      source: {value: tileImage1}
-    }),
-    vk.upload.wallPhoto({
-      group_id: GROUP_IDS[name],
-      source: {value: tileImage2}
-    }),
-    vk.upload.wallPhoto({
-      group_id: GROUP_IDS[name],
-      source: {value: tileImage3}
-    })
-  ]);
-
-  return await Promise.all([
-    vk.api.wall.post({
-      owner_id: GROUP_IDS[type] * -1,
-      from_group: 1,
-      message: `${horoscope.title}, гороскоп на ${data.date}:`,
-      attachments: `photo${attachments[0].ownerId}_${attachments[0].id}`,
-      publish_date: new Date(new Date().toDateString() + ` ${horoscope.publish} +0300`).getTime() / 1000
-    }),
-    vk.api.wall.post({
-      owner_id: GROUP_IDS[name] * -1,
-      from_group: 1,
-      message: `${horoscope.title}, гороскоп на ${data.date}:`,
-      attachments: [`photo${attachments[1].ownerId}_${attachments[1].id}`, `photo${attachments[2].ownerId}_${attachments[2].id}`],
-      publish_date: new Date(new Date().toDateString() + ` ${TYPES_PUBLISH[type]} +0300`).getTime() / 1000
-    })
-  ]);
-
+  if (stepNumber === 4) {
+    return await postStep3(vk, rows, [6, 7, 8, 9, 10, 11]);
+  }
 };
 
 module.exports = postDailyWalls;
