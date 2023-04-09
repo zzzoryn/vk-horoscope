@@ -26,11 +26,11 @@ const postStep3 = async function(vk, rows, indexes) {
     owner_id: HOROSCOPES[index].groupId * -1,
     from_group: 1,
     message: `Гороскоп на ${getDate()}\n
-Бизнес: ${rows[index].business}\n
-Любовь: ${rows[index].love}\n
-Здоровье: ${rows[index].health}\n
-Постель: ${rows[index].erotic}\n
-#гороскоп #${HOROSCOPES[index].title.toLowerCase()} #бизнес #любовь #здоровье #постель\`,`,
+&#10084; Любовь: ${rows[index].love}\n
+&#9752; Здоровье: ${rows[index].health}\n
+&#128176; Бизнес: ${rows[index].business}\n
+&#128139; Постель: ${rows[index].erotic}\n
+#гороскоп #${HOROSCOPES[index].title.toLowerCase()} #любовь #здоровье #бизнес #постель`,
     attachments: rows[index][`common_image`]
   })));
 };

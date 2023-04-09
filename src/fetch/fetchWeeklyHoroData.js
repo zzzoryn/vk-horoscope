@@ -20,6 +20,8 @@ const fetchWeeklyHoroData = async function() {
     }
   });
 
+  rows[0].date = weeklyHoroscope.horo.date[0].$.weekly;
+
   await Promise.all(rows.map(row => row.save()));
 };
 

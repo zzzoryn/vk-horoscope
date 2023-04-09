@@ -1,8 +1,8 @@
 require('dotenv').config();
 
-
-const postDailyWalls = require('./src/post/postDailyWalls');
+// const postWeeklyWalls = require('./src/post/postWeeklyWalls');
+// const {HOROSCOPES, TYPES} = require('./src/constants');
 
 (async function() {
-  await postDailyWalls(3);
+  // await postWeeklyWalls(3);
 })();

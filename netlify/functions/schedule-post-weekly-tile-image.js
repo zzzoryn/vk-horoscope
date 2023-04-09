@@ -10,11 +10,11 @@ const handler = async function() {
   const type = TYPES[typeIndex].name;
   const name = HOROSCOPES[nameIndex].name;
 
-  await postTileImage(type, name, false);
+  await postTileImage(type, name, true);
 
   return {
     statusCode: 200
   };
 };
 
-exports.handler = schedule('* 5 * * *', handler);
+exports.handler = schedule('* 6 * * 7', handler);
