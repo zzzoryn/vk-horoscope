@@ -7,8 +7,20 @@ const postStep1 = async function(vk, rows) {
     const response = await vk.api.wall.post({
       owner_id: type.groupId * -1,
       from_group: 1,
-      message: `${type.title} на неделю (${rows[0].date}):`,
-      attachments: HOROSCOPES.map((h, ind) => rows[ind][`${type.name}_image`])
+      message: `Гороскоп на неделю (${rows[0].date}):\n
+&#9800; Овен\n${rows[0][type.name]}\n
+&#9801; Телец\n${rows[1][type.name]}\n
+&#9802; Близнецы\n${rows[2][type.name]}\n
+&#9803; Рак\n${rows[3][type.name]}\n
+&#9804; Лев\n${rows[4][type.name]}\n
+&#9805; Дева\n${rows[5][type.name]}\n
+&#9806; Весы\n${rows[6][type.name]}\n
+&#9807; Скорпион\n${rows[7][type.name]}\n
+&#9808; Стрелец\n${rows[8][type.name]}\n
+&#9809; Козерог\n${rows[9][type.name]}\n
+&#9810; Водолей\n${rows[10][type.name]}\n
+&#9811; Рыбы\n${rows[11][type.name]}`,
+      attachments: rows[0][`${type.name}_bg_image`]
     });
 
     return vk.api.wall.pin({
