@@ -35,7 +35,7 @@ module.exports.TYPES = [{
   groupId: 219731279
 }, {
   name: 'erotic',
-  title: 'Эротический гороскоп',
+  title: 'Пикантный гороскоп',
   groupId: 219735042
 }];
 
