@@ -26,7 +26,7 @@ exports.handler = async function(event) {
 
     const attachment = await vk.upload.wallPhoto({
       group_id: horoscope.groupId,
-      source: {value: body.image}
+      source: {value: Buffer.from(body.image, 'base64')}
     });
 
     return {
