@@ -10,6 +10,8 @@ exports.handler = async function(event) {
     };
   }
 
+  console.log(event.body);
+
   if (!event.body.image) {
     return {
       statusCode: 400,
