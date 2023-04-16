@@ -10,11 +10,9 @@ exports.handler = async function(event) {
     };
   }
 
-  console.log(event.body);
-
   if (!event.body.image) {
     return {
-      statusCode: 400,
+      statusCode: 200,
       body: JSON.stringify({message: 'No image'}),
       headers: {'content-type': 'application/json'}
     };
@@ -37,7 +35,7 @@ exports.handler = async function(event) {
   }
   catch (err) {
     return {
-      statusCode: 400,
+      statusCode: 200,
       body: JSON.stringify({type: 'error', message: err.message}),
       headers: {'content-type': 'application/json'}
     };
