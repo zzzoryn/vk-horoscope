@@ -5,7 +5,8 @@
   "node": "16.14.2",
   "scripts": {
     "start": "node index.js",
-    "buid": "node index.js"
+    "buid": "node index.js",
+    "dev": "netlify dev"
   },
   "author": "",
   "license": "ISC",

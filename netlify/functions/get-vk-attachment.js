@@ -10,7 +10,9 @@ exports.handler = async function(event) {
     };
   }
 
-  if (!event.body.image) {
+  const body = event.body ? JSON.parse(event.body) : {};
+
+  if (!body.image) {
     return {
       statusCode: 200,
       body: JSON.stringify({message: 'No image'}),
@@ -24,7 +26,7 @@ exports.handler = async function(event) {
 
     const attachment = await vk.upload.wallPhoto({
       group_id: horoscope.groupId,
-      source: {value: event.body.image}
+      source: {value: body.image}
     });
 
     return {
