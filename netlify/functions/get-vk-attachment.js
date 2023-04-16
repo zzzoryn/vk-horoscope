@@ -6,7 +6,7 @@ exports.handler = async function(event) {
     return {
       statusCode: 501,
       body: JSON.stringify({message: 'Not Implemented'}),
-      headers: {'content-type': 'application/json'}
+      headers: {'content-type': 'application/json', 'Access-Control-Allow-Origin': '*'}
     };
   }
 
@@ -14,7 +14,7 @@ exports.handler = async function(event) {
     return {
       statusCode: 200,
       body: JSON.stringify({message: 'No image'}),
-      headers: {'content-type': 'application/json'}
+      headers: {'content-type': 'application/json', 'Access-Control-Allow-Origin': '*'}
     };
   }
 
@@ -30,14 +30,14 @@ exports.handler = async function(event) {
     return {
       statusCode: 200,
       body: JSON.stringify({attachment: `photo${attachment.ownerId}_${attachment.id}`}),
-      headers: {'content-type': 'application/json'}
+      headers: {'content-type': 'application/json', 'Access-Control-Allow-Origin': '*'}
     };
   }
   catch (err) {
     return {
       statusCode: 200,
       body: JSON.stringify({type: 'error', message: err.message}),
-      headers: {'content-type': 'application/json'}
+      headers: {'content-type': 'application/json', 'Access-Control-Allow-Origin': '*'}
     };
   }
 };
