@@ -1,3 +1,4 @@
+require('dotenv').config();
 const {VK} = require('vk-io');
 const {TYPES} = require('../../src/constants');
 
@@ -26,7 +27,7 @@ exports.handler = async function(event) {
 
     const attachment = await vk.upload.wallPhoto({
       group_id: horoscope.groupId,
-      source: {value: body.image}
+      source: {value: Buffer.from(body.image.replace('data:image/png;base64,', ''), 'base64')}
     });
 
     return {
