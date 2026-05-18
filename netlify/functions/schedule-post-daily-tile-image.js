@@ -1,20 +1,21 @@
 const {schedule} = require('@netlify/functions');
-const postTileImage = require('../../src/post/postTileImage');
-const {TYPES, HOROSCOPES} = require('../../src/constants');
+const postDailyTilesForSign = require('../../src/post/postDailyTilesForSign');
+const {HOROSCOPES} = require('../../src/constants');
 
 const handler = async function() {
-  const minutes = new Date().getMinutes();
-  const typeIndex = Math.floor(minutes / 12);
-  const nameIndex = minutes % 12;
+  const nameIndex = new Date().getMinutes();
 
-  const type = TYPES[typeIndex].name;
+  if (nameIndex > 11) {
+    return {statusCode: 200};
+  }
+
   const name = HOROSCOPES[nameIndex].name;
 
-  await postTileImage(type, name, false);
+  await postDailyTilesForSign(name);
 
   return {
     statusCode: 200
   };
 };
 
-exports.handler = schedule('* 5 * * *', handler);
+exports.handler = schedule('0,1,2,3,4,5,6,7,8,9,10,11 5 * * *', handler);

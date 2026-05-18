@@ -1,10 +1,12 @@
 const {VK} = require('vk-io');
 const getSheetDoc = require('../utils/getSheetDoc');
 const {TYPES, HOROSCOPES} = require('../constants');
+const postWallWithPromo = require('./postWallWithPromo');
+const ensureWeeklyTiles = require('./ensureWeeklyTiles');
 
 const postStep1 = async function(vk, rows) {
   return Promise.all(TYPES.map(async function(type) {
-    const response = await vk.api.wall.post({
+    const response = await postWallWithPromo(vk, {
       owner_id: type.groupId * -1,
       from_group: 1,
       message: `Гороскоп на неделю (${rows[0].date}):\n
@@ -32,7 +34,7 @@ const postStep1 = async function(vk, rows) {
 
 const postStep2 = async function(vk, rows, indexes) {
   return Promise.all(indexes.map(async function(index) {
-    const response = await vk.api.wall.post({
+    const response = await postWallWithPromo(vk, {
       owner_id: HOROSCOPES[index].groupId * -1,
       from_group: 1,
       message: `Гороскоп на неделю (${rows[0].date}):\n
@@ -63,6 +65,7 @@ const postWeeklyWalls = async function(stepNumber) {
   const rows = await sheet.getRows();
 
   if (stepNumber === 1) {
+    await ensureWeeklyTiles(vk, rows);
     return await postStep1(vk, rows);
   }
 

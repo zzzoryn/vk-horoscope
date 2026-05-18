@@ -8,7 +8,7 @@ const handler = async function() {
 
   if (minutes < 12) {
     const name = HOROSCOPES[minutes].name;
-    await postTileImage('common', name, true);
+    await postTileImage.postTileImageWithRetry('common', name, true);
   }
   else {
     const type = TYPES[minutes-12].name;
