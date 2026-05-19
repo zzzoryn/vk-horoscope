@@ -2,6 +2,7 @@ const {VK} = require('vk-io');
 const getSheetDoc = require('../utils/getSheetDoc');
 const {TYPES, HOROSCOPES} = require('../constants');
 const postWallWithPromo = require('./postWallWithPromo');
+const buildPostGuid = postWallWithPromo.buildPostGuid;
 const ensureWeeklyTiles = require('./ensureWeeklyTiles');
 
 const postStep1 = async function(vk, rows) {
@@ -22,7 +23,8 @@ const postStep1 = async function(vk, rows) {
 &#9809; Козерог\n${rows[9][type.name]}\n
 &#9810; Водолей\n${rows[10][type.name]}\n
 &#9811; Рыбы\n${rows[11][type.name]}`,
-      attachments: rows[0][`${type.name}_bg_image`]
+      attachments: rows[0][`${type.name}_bg_image`],
+      guid: buildPostGuid(`weekly-${type.name}-summary`)
     });
 
     return vk.api.wall.pin({
@@ -43,7 +45,8 @@ const postStep2 = async function(vk, rows, indexes) {
 &#128176; Бизнес: ${rows[index].business}\n
 &#128139; Постель: ${rows[index].erotic}\n
 #гороскоп #${HOROSCOPES[index].title.toLowerCase()} #любовь #здоровье #бизнес #постель`,
-      attachments: rows[index][`common_image`]
+      attachments: rows[index][`common_image`],
+      guid: buildPostGuid(`weekly-sign-${HOROSCOPES[index].name}`)
     });
 
     return vk.api.wall.pin({

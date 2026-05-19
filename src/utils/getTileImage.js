@@ -1,6 +1,22 @@
+const path = require('path');
 const sharp = require('sharp');
 const asyncFetch = require('./asyncFetch');
 const {COLORS} = require('../constants');
+const {getFontPath, FONT_FAMILY} = require('./getFontPath');
+
+const fontPath = getFontPath();
+
+const textRenderOptions = function(text, width, height, color) {
+  return {
+    text: `<span foreground="${color}">${text}</span>`,
+    font: FONT_FAMILY,
+    fontfile: fontPath,
+    width,
+    height,
+    align: 'centre',
+    rgba: true
+  };
+};
 
 const getTileImage = async function(type, name, date, text) {
   const bgImageUrl = `https://cdn.jsdelivr.net/gh/zzzoryn/sdn-images@master/vk-horo/${type}-${name}.jpg`;
@@ -20,19 +36,14 @@ const getTileImage = async function(type, name, date, text) {
     .composite([
       {
         input: {
-          text: {
-            text: `<span foreground="${COLORS[type]}">${text}</span>`,
-            font: 'sans-serif',
-            width: texWidth,
-            height: textHeight,
-            align: 'centre',
-            rgba: true
-          }
+          text: textRenderOptions(text, texWidth, textHeight, COLORS[type])
         }
       }
     ])
     .png()
     .toBuffer();
+
+  const dateWidth = date.length * 22;
 
   return await sharp(background)
     .composite([
@@ -41,20 +52,13 @@ const getTileImage = async function(type, name, date, text) {
       },
       {
         top: 946,
-        left: 540 - date.length * 22 / 2,
+        left: 540 - dateWidth / 2,
         input: {
-          text: {
-            text: `<span foreground="${COLORS[type]}">${date}</span>`,
-            font: 'sans-serif',
-            width: date.length * 22,
-            height: 50,
-            rgba: true
-          }
+          text: textRenderOptions(date, dateWidth, 50, COLORS[type])
         }
       }
     ])
     .png()
-    //.toFile('images/test.png');
     .toBuffer();
 };
 

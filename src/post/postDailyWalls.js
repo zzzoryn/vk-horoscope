@@ -3,6 +3,7 @@ const getSheetDoc = require('../utils/getSheetDoc');
 const {TYPES, HOROSCOPES} = require('../constants');
 const getDate = require('../utils/getDate');
 const postWallWithPromo = require('./postWallWithPromo');
+const buildPostGuid = postWallWithPromo.buildPostGuid;
 const ensureDailyTiles = require('./ensureDailyTiles');
 
 const postStep1 = async function(vk, rows) {
@@ -10,7 +11,8 @@ const postStep1 = async function(vk, rows) {
     owner_id: type.groupId * -1,
     from_group: 1,
     message: `${type.title} на ${getDate()} (Часть 2):`,
-    attachments: [6, 7, 8, 9, 10, 11].map(ind => rows[ind][`${type.name}_image`])
+    attachments: [6, 7, 8, 9, 10, 11].map(ind => rows[ind][`${type.name}_image`]),
+    guid: buildPostGuid(`${type.name}-collage-2`)
   })));
 };
 
@@ -19,7 +21,8 @@ const postStep2 = async function(vk, rows) {
     owner_id: type.groupId * -1,
     from_group: 1,
     message: `${type.title} на ${getDate()} (Часть 1):`,
-    attachments: [0, 1, 2, 3, 4, 5].map(ind => rows[ind][`${type.name}_image`])
+    attachments: [0, 1, 2, 3, 4, 5].map(ind => rows[ind][`${type.name}_image`]),
+    guid: buildPostGuid(`${type.name}-collage-1`)
   })));
 };
 
@@ -33,7 +36,8 @@ const postStep3 = async function(vk, rows, indexes) {
 &#128176; Бизнес: ${rows[index].business}\n
 &#128139; Постель: ${rows[index].erotic}\n
 #гороскоп #${HOROSCOPES[index].title.toLowerCase()} #любовь #здоровье #бизнес #постель`,
-    attachments: rows[index][`common_image`]
+    attachments: rows[index][`common_image`],
+    guid: buildPostGuid(`sign-${HOROSCOPES[index].name}`)
   })));
 };
 
@@ -50,20 +54,20 @@ const postDailyWalls = async function(stepNumber) {
   const rows = await sheet.getRows();
 
   if (stepNumber === 1) {
-    await ensureDailyTiles(vk, rows, [6, 7, 8, 9, 10, 11], expectedDate);
     return await postStep1(vk, rows);
   }
 
   if (stepNumber === 2) {
-    await ensureDailyTiles(vk, rows, [0, 1, 2, 3, 4, 5], expectedDate);
     return await postStep2(vk, rows);
   }
 
   if (stepNumber === 3) {
+    await ensureDailyTiles(vk, rows, [0, 1, 2, 3, 4, 5], expectedDate);
     return await postStep3(vk, rows, [0, 1, 2, 3, 4, 5]);
   }
 
   if (stepNumber === 4) {
+    await ensureDailyTiles(vk, rows, [6, 7, 8, 9, 10, 11], expectedDate);
     return await postStep3(vk, rows, [6, 7, 8, 9, 10, 11]);
   }
 };
