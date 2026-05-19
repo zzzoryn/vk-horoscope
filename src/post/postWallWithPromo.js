@@ -12,7 +12,7 @@ const buildPostGuid = function(scope) {
 };
 
 /**
- * wall.post with promo footer + community comment (from_group).
+ * wall.post with promo footer + comment from the token owner (admin).
  * Post is not rolled back if comment fails (avoids duplicate posts on retry).
  *
  * @param vk
@@ -32,7 +32,6 @@ const postWallWithPromo = async function(vk, params) {
     await withRetry(() => vk.api.wall.createComment({
       owner_id: params.owner_id,
       post_id: response.post_id,
-      from_group: 1,
       message: COMMUNITY_COMMENT
     }), 3, 1500);
   } catch (error) {
