@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "buid": "node index.js",
-    "dev": "netlify dev"
+    "dev": "netlify dev",
+    "tiles:sign": "node scripts/regenerate-daily-tiles.js",
+    "tiles:all": "node scripts/regenerate-daily-tiles.js"
   },
   "author": "",
   "license": "ISC",
