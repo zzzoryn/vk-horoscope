@@ -29,5 +29,12 @@ const raw = process.env.VK_GROUP_TOKENS;
   console.log('Remove VK_GROUP_TOKENS from Netlify env vars (Lambda 4KB limit).');
 })().catch(function(error) {
   console.error(error.message || error);
+
+  if (String(error.message || error).includes('DECODER') || error.code === 'ERR_OSSL_UNSUPPORTED') {
+    console.error('\nGoogle key problem. In .env use:');
+    console.error('  GOOGLE_SERVICE_ACCOUNT_JSON=./service-account.json');
+    console.error('Then: npm run validate:google');
+  }
+
   process.exit(1);
 });

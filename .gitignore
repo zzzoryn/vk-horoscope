@@ -1,6 +1,8 @@
 .DS_Store
 .idea
 .env
+service-account.json
+*-service-account.json
 /node_modules
 
 # Local Netlify folder

@@ -31,6 +31,22 @@ MSK = UTC+3 (e.g. `19:00 UTC` → 22:00 MSK).
 
 Add columns per row: `common_image_date`, `business_image_date`, `love_image_date`, `health_image_date`, `erotic_image_date`.
 
+### Google credentials (local)
+
+If you see `error:1E08010C:DECODER routines::unsupported`, the private key in `.env` is malformed. **Use the JSON file from Google Cloud** instead of pasting the key:
+
+```env
+GOOGLE_SHEET_ID=...
+GOOGLE_SERVICE_ACCOUNT_JSON=./service-account.json
+```
+
+```bash
+npm run validate:google
+npm run vk:push-group-tokens
+```
+
+On Netlify keep `GOOGLE_PRIVATE_KEY` + `GOOGLE_SERVICE_ACCOUNT_EMAIL` (one key only, no 17 VK tokens in env).
+
 Weekly data: sheet id `1404558085` (hardcoded).
 
 ## Environment
