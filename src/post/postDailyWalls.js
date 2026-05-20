@@ -4,7 +4,6 @@ const {TYPES, HOROSCOPES} = require('../constants');
 const getDate = require('../utils/getDate');
 const postWallWithPromo = require('./postWallWithPromo');
 const buildPostGuid = postWallWithPromo.buildPostGuid;
-const ensureDailyTiles = require('./ensureDailyTiles');
 
 const postStep1 = async function(vk, rows) {
   return Promise.all(TYPES.map(type => postWallWithPromo(vk, {
@@ -62,11 +61,13 @@ const postDailyWalls = async function(stepNumber) {
   }
 
   if (stepNumber === 3) {
+    const ensureDailyTiles = require('./ensureDailyTiles');
     await ensureDailyTiles(vk, rows, [0, 1, 2, 3, 4, 5], expectedDate);
     return await postStep3(vk, rows, [0, 1, 2, 3, 4, 5]);
   }
 
   if (stepNumber === 4) {
+    const ensureDailyTiles = require('./ensureDailyTiles');
     await ensureDailyTiles(vk, rows, [6, 7, 8, 9, 10, 11], expectedDate);
     return await postStep3(vk, rows, [6, 7, 8, 9, 10, 11]);
   }

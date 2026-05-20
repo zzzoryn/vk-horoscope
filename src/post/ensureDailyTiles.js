@@ -1,6 +1,5 @@
 const {TYPES, HOROSCOPES} = require('../constants');
 const {isTileFresh} = require('./tileFreshness');
-const postTileImage = require('./postTileImage');
 
 const MAX_REGENERATIONS = 10;
 
@@ -14,6 +13,7 @@ const MAX_REGENERATIONS = 10;
  * @return {Promise<object[]>} failed items
  */
 const ensureDailyTiles = async function(vk, rows, signIndexes, expectedDate) {
+  const postTileImage = require('./postTileImage');
   const failed = [];
   const skipped = [];
   let regenerated = 0;

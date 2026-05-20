@@ -1,6 +1,5 @@
 const {HOROSCOPES} = require('../constants');
 const {isTileFresh} = require('./tileFreshness');
-const postTileImage = require('./postTileImage');
 
 const MAX_REGENERATIONS = 10;
 
@@ -10,6 +9,7 @@ const MAX_REGENERATIONS = 10;
  * @return {Promise<object[]>}
  */
 const ensureWeeklyTiles = async function(vk, rows) {
+  const postTileImage = require('./postTileImage');
   const expectedDate = rows[0].date;
   const failed = [];
   const skipped = [];
