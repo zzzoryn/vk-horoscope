@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const {getVkForGroupComment, loadGroupTokens} = require('../src/utils/getVkGroupToken');
+const {getVkForGroup, loadGroupTokens} = require('../src/utils/getVkGroupToken');
 const {HOROSCOPES} = require('../src/constants');
 
 const groupId = process.argv[2] || String(HOROSCOPES[0].groupId);
@@ -13,7 +13,7 @@ const groupId = process.argv[2] || String(HOROSCOPES[0].groupId);
     process.exit(1);
   }
 
-  const vk = getVkForGroupComment(groupId);
+  const vk = getVkForGroup(groupId);
   const group = await vk.api.groups.getById({group_id: groupId});
 
   console.log('OK community token for group', groupId, '→', group[0].name);

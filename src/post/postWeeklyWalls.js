@@ -4,10 +4,11 @@ const {TYPES, HOROSCOPES} = require('../constants');
 const postWallWithPromo = require('./postWallWithPromo');
 const buildPostGuid = postWallWithPromo.buildPostGuid;
 const ensureWeeklyTiles = require('./ensureWeeklyTiles');
+const {getVkForGroup} = require('../utils/getVkGroupToken');
 
-const postStep1 = async function(vk, rows) {
+const postStep1 = async function(rows) {
   return Promise.all(TYPES.map(async function(type) {
-    const response = await postWallWithPromo(vk, {
+    const response = await postWallWithPromo({
       owner_id: type.groupId * -1,
       from_group: 1,
       message: `Гороскоп на неделю (${rows[0].date}):\n
@@ -27,16 +28,18 @@ const postStep1 = async function(vk, rows) {
       guid: buildPostGuid(`weekly-${type.name}-summary`)
     });
 
-    return vk.api.wall.pin({
+    const groupVk = getVkForGroup(type.groupId);
+
+    return groupVk.api.wall.pin({
       owner_id: type.groupId * -1,
       post_id: response.post_id
     });
   }));
 };
 
-const postStep2 = async function(vk, rows, indexes) {
+const postStep2 = async function(rows, indexes) {
   return Promise.all(indexes.map(async function(index) {
-    const response = await postWallWithPromo(vk, {
+    const response = await postWallWithPromo({
       owner_id: HOROSCOPES[index].groupId * -1,
       from_group: 1,
       message: `Гороскоп на неделю (${rows[0].date}):\n
@@ -49,7 +52,9 @@ const postStep2 = async function(vk, rows, indexes) {
       guid: buildPostGuid(`weekly-sign-${HOROSCOPES[index].name}`)
     });
 
-    return vk.api.wall.pin({
+    const groupVk = getVkForGroup(HOROSCOPES[index].groupId);
+
+    return groupVk.api.wall.pin({
       owner_id: HOROSCOPES[index].groupId * -1,
       post_id: response.post_id
     });
@@ -61,23 +66,23 @@ const postStep2 = async function(vk, rows, indexes) {
  * @return {Promise<Awaited<*>[]>}
  */
 const postWeeklyWalls = async function(stepNumber) {
-  const vk = new VK({token: process.env.VK_API_TOKEN});
+  const uploadVk = new VK({token: process.env.VK_API_TOKEN});
 
   const doc = await getSheetDoc();
   const sheet = doc.sheetsById[1404558085];
   const rows = await sheet.getRows();
 
   if (stepNumber === 1) {
-    await ensureWeeklyTiles(vk, rows);
-    return await postStep1(vk, rows);
+    await ensureWeeklyTiles(uploadVk, rows);
+    return await postStep1(rows);
   }
 
   if (stepNumber === 2) {
-    return await postStep2(vk, rows, [0, 1, 2, 3, 4, 5]);
+    return await postStep2(rows, [0, 1, 2, 3, 4, 5]);
   }
 
   if (stepNumber === 3) {
-    return await postStep2(vk, rows, [6, 7, 8, 9, 10, 11]);
+    return await postStep2(rows, [6, 7, 8, 9, 10, 11]);
   }
 };
 

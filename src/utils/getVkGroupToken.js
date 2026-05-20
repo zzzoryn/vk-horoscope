@@ -24,8 +24,8 @@ const loadGroupTokens = function() {
 };
 
 /**
- * Community API key for wall.createComment (from_group: 1).
- * Do not fall back to VK_API_TOKEN — user-token comments risk account blocks.
+ * Community API key for wall.post, wall.pin, wall.createComment (from_group: 1).
+ * Do not fall back to VK_API_TOKEN — user-token wall actions risk account blocks.
  *
  * @param groupId {number|string}
  * @return {string}
@@ -47,9 +47,12 @@ const getGroupToken = function(groupId) {
  * @param groupId {number|string}
  * @return {VK}
  */
-const getVkForGroupComment = function(groupId) {
+const getVkForGroup = function(groupId) {
   return new VK({token: getGroupToken(groupId)});
 };
+
+/** @deprecated use getVkForGroup */
+const getVkForGroupComment = getVkForGroup;
 
 /**
  * @param ownerId {number} negative community id from wall.post
@@ -62,6 +65,7 @@ const groupIdFromOwnerId = function(ownerId) {
 module.exports = {
   loadGroupTokens,
   getGroupToken,
+  getVkForGroup,
   getVkForGroupComment,
   groupIdFromOwnerId
 };

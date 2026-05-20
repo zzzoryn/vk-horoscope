@@ -74,7 +74,7 @@ module.exports.HOROSCOPES = [{
 }, {
   name: 'sagittarius',
   title: 'Стрелец',
-  groupId: 219708260
+  groupId: 238911036
 }, {
   name: 'capricorn',
   title: 'Козерог',

@@ -1,7 +1,7 @@
 const {POST_FOOTER, COMMUNITY_COMMENT} = require('./promoTexts');
 const withRetry = require('../utils/withRetry');
 const getDate = require('../utils/getDate');
-const {getVkForGroupComment, groupIdFromOwnerId} = require('../utils/getVkGroupToken');
+const {getVkForGroup, groupIdFromOwnerId} = require('../utils/getVkGroupToken');
 
 /**
  * @param scope {string}
@@ -13,15 +13,17 @@ const buildPostGuid = function(scope) {
 };
 
 /**
- * wall.post (user VK_API_TOKEN) + promo comment from the community (VK_GROUP_TOKENS).
+ * wall.post + promo comment via VK_GROUP_TOKENS (from_group: 1).
  * Post is not rolled back if comment fails (avoids duplicate posts on retry).
  *
- * @param vk user token with wall scope
  * @param params {{ owner_id: number, from_group: number, message: string, attachments?: string[], guid?: string }}
  * @return {Promise<{ post_id: number, commentError?: string }>}
  */
-const postWallWithPromo = async function(vk, params) {
-  const response = await vk.api.wall.post({
+const postWallWithPromo = async function(params) {
+  const groupId = groupIdFromOwnerId(params.owner_id);
+  const groupVk = getVkForGroup(groupId);
+
+  const response = await groupVk.api.wall.post({
     owner_id: params.owner_id,
     from_group: params.from_group,
     message: `${params.message}\n\n${POST_FOOTER}`,
@@ -29,11 +31,8 @@ const postWallWithPromo = async function(vk, params) {
     guid: params.guid
   });
 
-  const groupId = groupIdFromOwnerId(params.owner_id);
-  const commentVk = getVkForGroupComment(groupId);
-
   try {
-    await withRetry(() => commentVk.api.wall.createComment({
+    await withRetry(() => groupVk.api.wall.createComment({
       owner_id: params.owner_id,
       post_id: response.post_id,
       from_group: 1,

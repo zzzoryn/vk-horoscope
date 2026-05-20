@@ -5,8 +5,8 @@ const getDate = require('../utils/getDate');
 const postWallWithPromo = require('./postWallWithPromo');
 const buildPostGuid = postWallWithPromo.buildPostGuid;
 
-const postStep1 = async function(vk, rows) {
-  return Promise.all(TYPES.map(type => postWallWithPromo(vk, {
+const postStep1 = async function(rows) {
+  return Promise.all(TYPES.map(type => postWallWithPromo({
     owner_id: type.groupId * -1,
     from_group: 1,
     message: `${type.title} на ${getDate()} (Часть 2):`,
@@ -15,8 +15,8 @@ const postStep1 = async function(vk, rows) {
   })));
 };
 
-const postStep2 = async function(vk, rows) {
-  return Promise.all(TYPES.map(type => postWallWithPromo(vk, {
+const postStep2 = async function(rows) {
+  return Promise.all(TYPES.map(type => postWallWithPromo({
     owner_id: type.groupId * -1,
     from_group: 1,
     message: `${type.title} на ${getDate()} (Часть 1):`,
@@ -25,8 +25,8 @@ const postStep2 = async function(vk, rows) {
   })));
 };
 
-const postStep3 = async function(vk, rows, indexes) {
-  return Promise.all(indexes.map(index => postWallWithPromo(vk, {
+const postStep3 = async function(rows, indexes) {
+  return Promise.all(indexes.map(index => postWallWithPromo({
     owner_id: HOROSCOPES[index].groupId * -1,
     from_group: 1,
     message: `Гороскоп на ${getDate()}\n
@@ -45,7 +45,7 @@ const postStep3 = async function(vk, rows, indexes) {
  * @return {Promise<Awaited<*>[]>}
  */
 const postDailyWalls = async function(stepNumber) {
-  const vk = new VK({token: process.env.VK_API_TOKEN});
+  const uploadVk = new VK({token: process.env.VK_API_TOKEN});
   const expectedDate = getDate();
 
   const doc = await getSheetDoc();
@@ -53,23 +53,23 @@ const postDailyWalls = async function(stepNumber) {
   const rows = await sheet.getRows();
 
   if (stepNumber === 1) {
-    return await postStep1(vk, rows);
+    return await postStep1(rows);
   }
 
   if (stepNumber === 2) {
-    return await postStep2(vk, rows);
+    return await postStep2(rows);
   }
 
   if (stepNumber === 3) {
     const ensureDailyTiles = require('./ensureDailyTiles');
-    await ensureDailyTiles(vk, rows, [0, 1, 2, 3, 4, 5], expectedDate);
-    return await postStep3(vk, rows, [0, 1, 2, 3, 4, 5]);
+    await ensureDailyTiles(uploadVk, rows, [0, 1, 2, 3, 4, 5], expectedDate);
+    return await postStep3(rows, [0, 1, 2, 3, 4, 5]);
   }
 
   if (stepNumber === 4) {
     const ensureDailyTiles = require('./ensureDailyTiles');
-    await ensureDailyTiles(vk, rows, [6, 7, 8, 9, 10, 11], expectedDate);
-    return await postStep3(vk, rows, [6, 7, 8, 9, 10, 11]);
+    await ensureDailyTiles(uploadVk, rows, [6, 7, 8, 9, 10, 11], expectedDate);
+    return await postStep3(rows, [6, 7, 8, 9, 10, 11]);
   }
 };
 

@@ -40,8 +40,8 @@ See [`.env.example`](.env.example).
 | Variable | Purpose |
 |----------|---------|
 | `GOOGLE_*` | Sheet access (service account) |
-| `VK_API_TOKEN` | User OAuth token (`wall`, `photos`) for uploads and wall posts |
-| `VK_GROUP_TOKENS` | JSON `{"groupId":"communityKey",...}` — **only** for promo link comments (`from_group: 1`) |
+| `VK_API_TOKEN` | User OAuth token (`wall`, `photos`) for **photo uploads** only |
+| `VK_GROUP_TOKENS` | JSON `{"groupId":"communityKey",...}` — wall posts, pins, promo comments (`from_group: 1`) |
 
 ### VK token notes
 
@@ -70,7 +70,7 @@ Do not invoke `schedule-post-daily-tile-image` outside minutes `0–11` — it e
 
 ## Promo
 
-Every post gets a footer; a short link comment is added **from the community** (`from_group: 1`) using `VK_GROUP_TOKENS` — not from your personal account. Texts: `src/post/promoTexts.js`.
+Posts and promo comments go **from the community** (`from_group: 1`) via `VK_GROUP_TOKENS`; the user token is only for uploading tile images. Texts: `src/post/promoTexts.js`.
 
 ```bash
 npm run vk:group-tokens-template   # JSON skeleton for all 17 groupIds
