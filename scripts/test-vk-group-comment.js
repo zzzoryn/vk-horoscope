@@ -6,14 +6,14 @@ const {HOROSCOPES} = require('../src/constants');
 const groupId = process.argv[2] || String(HOROSCOPES[0].groupId);
 
 (async function() {
-  const tokens = loadGroupTokens();
+  const tokens = await loadGroupTokens();
 
   if (!Object.keys(tokens).length) {
-    console.error('VK_GROUP_TOKENS is empty. Run: node scripts/vk-group-tokens-template.js');
+    console.error('No group tokens. Set VK_GROUP_TOKENS in .env or sheet tab group_tokens A1.');
     process.exit(1);
   }
 
-  const vk = getVkForGroup(groupId);
+  const vk = await getVkForGroup(groupId);
   const group = await vk.api.groups.getById({group_id: groupId});
 
   console.log('OK community token for group', groupId, '→', group[0].name);

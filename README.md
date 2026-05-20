@@ -41,13 +41,24 @@ See [`.env.example`](.env.example).
 |----------|---------|
 | `GOOGLE_*` | Sheet access (service account) |
 | `VK_API_TOKEN` | User OAuth token (`wall`, `photos`) for **photo uploads** only |
-| `VK_GROUP_TOKENS` | JSON `{"groupId":"communityKey",...}` — wall posts, pins, promo comments (`from_group: 1`) |
+| `VK_GROUP_TOKENS` | Local only: JSON `{"groupId":"key",...}`. **Netlify:** store same JSON in Google Sheet tab `group_tokens` cell **A1** (see below) |
 
 ### VK token notes
 
 - Use a **Standalone** VK app and `redirect_uri=https://oauth.vk.com/blank.html`.  
 - User tokens are often **bound to the IP** where you authorized → may fail on Netlify with `Code №5`.  
 - If so, run tile generation **locally** (`npm run tiles:all`) and keep Netlify for fetch/post only, or use a VPS with a stable IP for the same token.
+
+### Netlify: group tokens in Google Sheet (4KB env limit)
+
+AWS Lambda allows **4KB total** for all environment variables. Seventeen community keys in `VK_GROUP_TOKENS` exceed that together with `GOOGLE_PRIVATE_KEY`.
+
+1. Keep `VK_GROUP_TOKENS` in local `.env` for development.  
+2. Run `npm run vk:push-group-tokens` (writes `.env` JSON to sheet tab **`group_tokens`**, cell **A1**).  
+3. In **Netlify → Environment variables**, **delete** `VK_GROUP_TOKENS`.  
+4. Redeploy.
+
+Functions load tokens from the sheet when `VK_GROUP_TOKENS` is unset. Optional: `VK_GROUP_TOKENS_SHEET` to use another tab name.
 
 ## Manual runs
 
@@ -60,6 +71,7 @@ npm run tiles:sign -- aries
 npm run tiles:all
 
 npm run vk:group-tokens-template
+npm run vk:push-group-tokens
 npm run vk:test-group-token -- 219706249
 
 # Netlify HTTP (after deploy)

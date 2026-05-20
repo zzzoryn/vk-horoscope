@@ -28,7 +28,7 @@ const postStep1 = async function(rows) {
       guid: buildPostGuid(`weekly-${type.name}-summary`)
     });
 
-    const groupVk = getVkForGroup(type.groupId);
+    const groupVk = await getVkForGroup(type.groupId);
 
     return groupVk.api.wall.pin({
       owner_id: type.groupId * -1,
@@ -52,7 +52,7 @@ const postStep2 = async function(rows, indexes) {
       guid: buildPostGuid(`weekly-sign-${HOROSCOPES[index].name}`)
     });
 
-    const groupVk = getVkForGroup(HOROSCOPES[index].groupId);
+    const groupVk = await getVkForGroup(HOROSCOPES[index].groupId);
 
     return groupVk.api.wall.pin({
       owner_id: HOROSCOPES[index].groupId * -1,

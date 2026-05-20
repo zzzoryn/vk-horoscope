@@ -1,42 +1,92 @@
 const {VK} = require('vk-io');
+const getSheetDoc = require('./getSheetDoc');
+
+const TOKENS_SHEET_TITLE = process.env.VK_GROUP_TOKENS_SHEET || 'group_tokens';
 
 let groupTokensCache;
+let loadPromise;
 
-const loadGroupTokens = function() {
+const parseTokensJson = function(raw, source) {
+  try {
+    const parsed = JSON.parse(String(raw).trim());
+
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('expected JSON object');
+    }
+
+    return parsed;
+  } catch (error) {
+    throw new Error(`${source} must be valid JSON: {"groupId":"token",...} (${error.message})`);
+  }
+};
+
+const loadGroupTokensFromSheet = async function() {
+  const doc = await getSheetDoc();
+  const sheet = doc.sheetsByTitle[TOKENS_SHEET_TITLE];
+
+  if (!sheet) {
+    throw new Error(
+      `Sheet tab "${TOKENS_SHEET_TITLE}" not found. Create it and paste VK_GROUP_TOKENS JSON in cell A1, ` +
+      'or set VK_GROUP_TOKENS in .env for local runs.'
+    );
+  }
+
+  await sheet.loadCells('A1');
+  const raw = sheet.getCell(0, 0).value;
+
+  if (!raw) {
+    throw new Error(
+      `Sheet "${TOKENS_SHEET_TITLE}" cell A1 is empty. Paste one-line VK_GROUP_TOKENS JSON there (Netlify Lambda env limit is 4KB).`
+    );
+  }
+
+  return parseTokensJson(raw, `"${TOKENS_SHEET_TITLE}"!A1`);
+};
+
+const loadGroupTokensInner = async function() {
+  const raw = process.env.VK_GROUP_TOKENS;
+
+  if (raw) {
+    return parseTokensJson(raw, 'VK_GROUP_TOKENS');
+  }
+
+  return loadGroupTokensFromSheet();
+};
+
+/**
+ * @return {Promise<Record<string, string>>}
+ */
+const loadGroupTokens = async function() {
   if (groupTokensCache !== undefined) {
     return groupTokensCache;
   }
 
-  const raw = process.env.VK_GROUP_TOKENS;
-
-  if (!raw) {
-    groupTokensCache = {};
-    return groupTokensCache;
+  if (!loadPromise) {
+    loadPromise = loadGroupTokensInner()
+      .then(tokens => {
+        groupTokensCache = tokens;
+        return tokens;
+      })
+      .catch(error => {
+        loadPromise = undefined;
+        throw error;
+      });
   }
 
-  try {
-    groupTokensCache = JSON.parse(raw);
-  } catch (error) {
-    throw new Error('VK_GROUP_TOKENS must be valid JSON: {"groupId":"token",...}');
-  }
-
-  return groupTokensCache;
+  return loadPromise;
 };
 
 /**
- * Community API key for wall.post, wall.pin, wall.createComment (from_group: 1).
- * Do not fall back to VK_API_TOKEN — user-token wall actions risk account blocks.
- *
  * @param groupId {number|string}
- * @return {string}
+ * @return {Promise<string>}
  */
-const getGroupToken = function(groupId) {
+const getGroupToken = async function(groupId) {
   const id = String(groupId);
-  const token = loadGroupTokens()[id];
+  const token = (await loadGroupTokens())[id];
 
   if (!token) {
     throw new Error(
-      `No community token for group ${id}. Add VK_GROUP_TOKENS["${id}"] (Управление → Работа с API).`
+      `No community token for group ${id}. Add key "${id}" in VK_GROUP_TOKENS or sheet "${TOKENS_SHEET_TITLE}" A1.`
     );
   }
 
@@ -45,10 +95,10 @@ const getGroupToken = function(groupId) {
 
 /**
  * @param groupId {number|string}
- * @return {VK}
+ * @return {Promise<VK>}
  */
-const getVkForGroup = function(groupId) {
-  return new VK({token: getGroupToken(groupId)});
+const getVkForGroup = async function(groupId) {
+  return new VK({token: await getGroupToken(groupId)});
 };
 
 /** @deprecated use getVkForGroup */

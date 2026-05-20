@@ -10,6 +10,7 @@
     "tiles:sign": "node scripts/regenerate-daily-tiles.js",
     "tiles:all": "node scripts/regenerate-daily-tiles.js",
     "vk:group-tokens-template": "node scripts/vk-group-tokens-template.js",
+    "vk:push-group-tokens": "node scripts/push-group-tokens-to-sheet.js",
     "vk:test-group-token": "node scripts/test-vk-group-comment.js"
   },
   "author": "",

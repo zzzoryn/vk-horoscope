@@ -13,7 +13,7 @@ const buildPostGuid = function(scope) {
 };
 
 /**
- * wall.post + promo comment via VK_GROUP_TOKENS (from_group: 1).
+ * wall.post + promo comment via community tokens (env or Google Sheet).
  * Post is not rolled back if comment fails (avoids duplicate posts on retry).
  *
  * @param params {{ owner_id: number, from_group: number, message: string, attachments?: string[], guid?: string }}
@@ -21,7 +21,7 @@ const buildPostGuid = function(scope) {
  */
 const postWallWithPromo = async function(params) {
   const groupId = groupIdFromOwnerId(params.owner_id);
-  const groupVk = getVkForGroup(groupId);
+  const groupVk = await getVkForGroup(groupId);
 
   const response = await groupVk.api.wall.post({
     owner_id: params.owner_id,
