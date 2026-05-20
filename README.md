@@ -40,7 +40,8 @@ See [`.env.example`](.env.example).
 | Variable | Purpose |
 |----------|---------|
 | `GOOGLE_*` | Sheet access (service account) |
-| `VK_API_TOKEN` | User OAuth token (`wall`, `photos`) for uploads and posts |
+| `VK_API_TOKEN` | User OAuth token (`wall`, `photos`) for uploads and wall posts |
+| `VK_GROUP_TOKENS` | JSON `{"groupId":"communityKey",...}` — **only** for promo link comments (`from_group: 1`) |
 
 ### VK token notes
 
@@ -58,6 +59,9 @@ cp .env.example .env
 npm run tiles:sign -- aries
 npm run tiles:all
 
+npm run vk:group-tokens-template
+npm run vk:test-group-token -- 219706249
+
 # Netlify HTTP (after deploy)
 # /.netlify/functions/manual-daily-tiles?sign=aries
 ```
@@ -66,7 +70,14 @@ Do not invoke `schedule-post-daily-tile-image` outside minutes `0–11` — it e
 
 ## Promo
 
-Every post gets a footer; a comment with the bot link is added as the **token owner** (admin). Texts: `src/post/promoTexts.js`.
+Every post gets a footer; a short link comment is added **from the community** (`from_group: 1`) using `VK_GROUP_TOKENS` — not from your personal account. Texts: `src/post/promoTexts.js`.
+
+```bash
+npm run vk:group-tokens-template   # JSON skeleton for all 17 groupIds
+npm run vk:test-group-token -- 219706249
+```
+
+Community keys: each group → **Управление** → **Работа с API** → create key (wall / messages access).
 
 ## Local dev
 
