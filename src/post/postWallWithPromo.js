@@ -1,5 +1,4 @@
 const {POST_FOOTER, COMMUNITY_COMMENT} = require('./promoTexts');
-const withRetry = require('../utils/withRetry');
 const getDate = require('../utils/getDate');
 const {getVkForGroup, groupIdFromOwnerId} = require('../utils/getVkGroupToken');
 
@@ -31,13 +30,18 @@ const postWallWithPromo = async function(params) {
     guid: params.guid
   });
 
+  const commentGuid = params.guid
+    ? `${params.guid}-promo`.slice(0, 32)
+    : undefined;
+
   try {
-    await withRetry(() => groupVk.api.wall.createComment({
+    await groupVk.api.wall.createComment({
       owner_id: params.owner_id,
       post_id: response.post_id,
       from_group: 1,
-      message: COMMUNITY_COMMENT
-    }), 3, 1500);
+      message: COMMUNITY_COMMENT,
+      guid: commentGuid
+    });
   } catch (error) {
     console.error('postWallWithPromo: createComment failed', {
       owner_id: params.owner_id,

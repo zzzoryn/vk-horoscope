@@ -4,28 +4,22 @@ const {TYPES, HOROSCOPES} = require('../constants');
 const getDate = require('../utils/getDate');
 const postWallWithPromo = require('./postWallWithPromo');
 const buildPostGuid = postWallWithPromo.buildPostGuid;
+const ensureDailyTiles = require('./ensureDailyTiles');
 
-const postStep1 = async function(rows) {
+const COLLAGE_PART_1 = [0, 1, 2, 3, 4, 5];
+const COLLAGE_PART_2 = [6, 7, 8, 9, 10, 11];
+
+const postCollagePart = async function(rows, signIndexes, partNumber) {
   return Promise.all(TYPES.map(type => postWallWithPromo({
     owner_id: type.groupId * -1,
     from_group: 1,
-    message: `${type.title} на ${getDate()} (Часть 2):`,
-    attachments: [6, 7, 8, 9, 10, 11].map(ind => rows[ind][`${type.name}_image`]),
-    guid: buildPostGuid(`${type.name}-collage-2`)
+    message: `${type.title} на ${getDate()} (Часть ${partNumber}):`,
+    attachments: signIndexes.map(ind => rows[ind][`${type.name}_image`]),
+    guid: buildPostGuid(`${type.name}-collage-${partNumber}`)
   })));
 };
 
-const postStep2 = async function(rows) {
-  return Promise.all(TYPES.map(type => postWallWithPromo({
-    owner_id: type.groupId * -1,
-    from_group: 1,
-    message: `${type.title} на ${getDate()} (Часть 1):`,
-    attachments: [0, 1, 2, 3, 4, 5].map(ind => rows[ind][`${type.name}_image`]),
-    guid: buildPostGuid(`${type.name}-collage-1`)
-  })));
-};
-
-const postStep3 = async function(rows, indexes) {
+const postSignPosts = async function(rows, indexes) {
   return Promise.all(indexes.map(index => postWallWithPromo({
     owner_id: HOROSCOPES[index].groupId * -1,
     from_group: 1,
@@ -41,7 +35,7 @@ const postStep3 = async function(rows, indexes) {
 };
 
 /**
- * @param stepNumber {Number}
+ * @param stepNumber {Number} 1–4 per schedule-post-daily-horo cron (minutes 0,5,10,15)
  * @return {Promise<Awaited<*>[]>}
  */
 const postDailyWalls = async function(stepNumber) {
@@ -53,23 +47,23 @@ const postDailyWalls = async function(stepNumber) {
   const rows = await sheet.getRows();
 
   if (stepNumber === 1) {
-    return await postStep1(rows);
+    await ensureDailyTiles(uploadVk, rows, COLLAGE_PART_1, expectedDate);
+    return await postCollagePart(rows, COLLAGE_PART_1, 1);
   }
 
   if (stepNumber === 2) {
-    return await postStep2(rows);
+    await ensureDailyTiles(uploadVk, rows, COLLAGE_PART_2, expectedDate);
+    return await postCollagePart(rows, COLLAGE_PART_2, 2);
   }
 
   if (stepNumber === 3) {
-    const ensureDailyTiles = require('./ensureDailyTiles');
-    await ensureDailyTiles(uploadVk, rows, [0, 1, 2, 3, 4, 5], expectedDate);
-    return await postStep3(rows, [0, 1, 2, 3, 4, 5]);
+    await ensureDailyTiles(uploadVk, rows, COLLAGE_PART_1, expectedDate);
+    return await postSignPosts(rows, COLLAGE_PART_1);
   }
 
   if (stepNumber === 4) {
-    const ensureDailyTiles = require('./ensureDailyTiles');
-    await ensureDailyTiles(uploadVk, rows, [6, 7, 8, 9, 10, 11], expectedDate);
-    return await postStep3(rows, [6, 7, 8, 9, 10, 11]);
+    await ensureDailyTiles(uploadVk, rows, COLLAGE_PART_2, expectedDate);
+    return await postSignPosts(rows, COLLAGE_PART_2);
   }
 };
 
