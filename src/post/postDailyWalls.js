@@ -9,7 +9,31 @@ const ensureDailyTiles = require('./ensureDailyTiles');
 const COLLAGE_PART_1 = [0, 1, 2, 3, 4, 5];
 const COLLAGE_PART_2 = [6, 7, 8, 9, 10, 11];
 
+const maxTilesForSigns = signIndexes => signIndexes.length * TYPES.length;
+
+const assertCollageAttachments = function(rows, signIndexes, partNumber) {
+  const missing = [];
+
+  for (const type of TYPES) {
+    for (const index of signIndexes) {
+      const attachment = rows[index][`${type.name}_image`];
+
+      if (!attachment) {
+        missing.push(`${type.name}/${HOROSCOPES[index].name}`);
+      }
+    }
+  }
+
+  if (missing.length) {
+    throw new Error(
+      `Collage part ${partNumber}: missing tile attachments: ${missing.join(', ')}`
+    );
+  }
+};
+
 const postCollagePart = async function(rows, signIndexes, partNumber) {
+  assertCollageAttachments(rows, signIndexes, partNumber);
+
   return Promise.all(TYPES.map(type => postWallWithPromo({
     owner_id: type.groupId * -1,
     from_group: 1,
@@ -35,7 +59,7 @@ const postSignPosts = async function(rows, indexes) {
 };
 
 /**
- * @param stepNumber {Number} 1–4 per schedule-post-daily-horo cron (minutes 0,5,10,15)
+ * @param stepNumber {Number} 1–4 (see schedule-post-daily-horo-step-*)
  * @return {Promise<Awaited<*>[]>}
  */
 const postDailyWalls = async function(stepNumber) {
@@ -47,12 +71,22 @@ const postDailyWalls = async function(stepNumber) {
   const rows = await sheet.getRows();
 
   if (stepNumber === 1) {
-    await ensureDailyTiles(uploadVk, rows, COLLAGE_PART_1, expectedDate);
+    const failed = await ensureDailyTiles(uploadVk, rows, COLLAGE_PART_1, expectedDate, {
+      maxRegenerations: maxTilesForSigns(COLLAGE_PART_1)
+    });
+    if (failed.length) {
+      console.warn('postDailyWalls step 1: tile regeneration failures', failed);
+    }
     return await postCollagePart(rows, COLLAGE_PART_1, 1);
   }
 
   if (stepNumber === 2) {
-    await ensureDailyTiles(uploadVk, rows, COLLAGE_PART_2, expectedDate);
+    const failed = await ensureDailyTiles(uploadVk, rows, COLLAGE_PART_2, expectedDate, {
+      maxRegenerations: maxTilesForSigns(COLLAGE_PART_2)
+    });
+    if (failed.length) {
+      console.warn('postDailyWalls step 2: tile regeneration failures', failed);
+    }
     return await postCollagePart(rows, COLLAGE_PART_2, 2);
   }
 
@@ -65,6 +99,8 @@ const postDailyWalls = async function(stepNumber) {
     await ensureDailyTiles(uploadVk, rows, COLLAGE_PART_2, expectedDate);
     return await postSignPosts(rows, COLLAGE_PART_2);
   }
+
+  throw new Error(`postDailyWalls: unknown step ${stepNumber}`);
 };
 
 module.exports = postDailyWalls;

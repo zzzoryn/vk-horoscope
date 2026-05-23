@@ -1,11 +1,11 @@
 /**
- * @param fn {() => Promise<*>}
- * @return {() => Promise<{statusCode: number, body?: string}>}
+ * @param fn {(event?: object) => Promise<*>}
+ * @return {(event?: object) => Promise<{statusCode: number, body?: string}>}
  */
 const scheduledHandler = function(fn) {
-  return async function() {
+  return async function(event) {
     try {
-      const result = await fn();
+      const result = await fn(event);
 
       if (result && typeof result === 'object' && 'statusCode' in result) {
         return result;

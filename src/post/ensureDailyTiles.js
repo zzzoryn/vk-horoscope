@@ -1,7 +1,7 @@
 const {TYPES, HOROSCOPES} = require('../constants');
 const {isTileFresh} = require('./tileFreshness');
 
-const MAX_REGENERATIONS = 10;
+const DEFAULT_MAX_REGENERATIONS = 10;
 
 /**
  * Regenerate stale tiles for collage steps (only given sign row indexes).
@@ -10,10 +10,12 @@ const MAX_REGENERATIONS = 10;
  * @param rows
  * @param signIndexes {number[]}
  * @param expectedDate {string}
+ * @param options {{ maxRegenerations?: number }}
  * @return {Promise<object[]>} failed items
  */
-const ensureDailyTiles = async function(vk, rows, signIndexes, expectedDate) {
+const ensureDailyTiles = async function(vk, rows, signIndexes, expectedDate, options = {}) {
   const postTileImage = require('./postTileImage');
+  const maxRegenerations = options.maxRegenerations ?? DEFAULT_MAX_REGENERATIONS;
   const failed = [];
   const skipped = [];
   let regenerated = 0;
@@ -24,7 +26,7 @@ const ensureDailyTiles = async function(vk, rows, signIndexes, expectedDate) {
         continue;
       }
 
-      if (regenerated >= MAX_REGENERATIONS) {
+      if (regenerated >= maxRegenerations) {
         skipped.push({type: type.name, sign: HOROSCOPES[index].name});
         continue;
       }
@@ -43,7 +45,7 @@ const ensureDailyTiles = async function(vk, rows, signIndexes, expectedDate) {
   }
 
   if (skipped.length) {
-    console.warn(`ensureDailyTiles: cap ${MAX_REGENERATIONS} reached, skipped`, skipped);
+    console.warn(`ensureDailyTiles: cap ${maxRegenerations} reached, skipped`, skipped);
   }
 
   return failed;

@@ -20,7 +20,7 @@ Automated horoscope posting for 17 VK communities. Texts from [ignio.com](https:
 | `0 4 * * *` | `schedule-fetch-daily-data` |
 | `0-11 5 * * *` | `schedule-post-daily-tile-image` (1 sign × 5 types / min) |
 | `0-11 17 * * *` | `schedule-post-daily-tile-image-pm` (backup tiles) |
-| `0,5,10,15 19 * * *` | `schedule-post-daily-horo` (steps 1–4) |
+| `0,5,10,15 19 * * *` | `schedule-post-daily-horo-step-1` … `step-4` (collage 1+2, then sign posts) |
 | Sun `15 4 * * 0` | `schedule-fetch-weekly-data` |
 | Sun `0-16 6 * * 0` | `schedule-post-weekly-tile-image` |
 | Sun `0,5,10 18 * * 0` | `schedule-post-weekly-horo` |
@@ -92,6 +92,7 @@ npm run vk:test-group-token -- 219706249
 
 # Netlify HTTP (after deploy)
 # /.netlify/functions/manual-daily-tiles?sign=aries
+# /.netlify/functions/manual-daily-horo?step=2
 ```
 
 Do not invoke `schedule-post-daily-tile-image` outside minutes `0–11` — it exits early by design.
