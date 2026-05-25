@@ -56,7 +56,7 @@ See [`.env.example`](.env.example).
 | Variable | Purpose |
 |----------|---------|
 | `GOOGLE_*` | Sheet access (service account) |
-| `VK_API_TOKEN` | User OAuth token (`wall`, `photos`) for **photo uploads** only |
+| `VK_API_TOKEN` | User OAuth token (`wall`, `photos`) for **photo uploads** and **pinning** weekly posts (admin in all groups) |
 | `VK_GROUP_TOKENS` | Local only: JSON `{"groupId":"key",...}`. **Netlify:** store same JSON in Google Sheet tab `group_tokens` cell **A1** (see below) |
 
 ### VK token notes

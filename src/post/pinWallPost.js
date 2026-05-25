@@ -1,5 +1,19 @@
+const {VK} = require('vk-io');
 const withRetry = require('../utils/withRetry');
-const {getVkForGroup} = require('../utils/getVkGroupToken');
+
+let userVk;
+
+const getUserVk = function() {
+  if (!process.env.VK_API_TOKEN) {
+    throw new Error('VK_API_TOKEN is required for wall.pin (unavailable with community tokens)');
+  }
+
+  if (!userVk) {
+    userVk = new VK({token: process.env.VK_API_TOKEN});
+  }
+
+  return userVk;
+};
 
 /**
  * @param response {{ post_id?: number }}
@@ -16,13 +30,15 @@ const extractPostId = function(response) {
 };
 
 /**
+ * VK error 27: wall.pin does not work with community (group) tokens — use user token.
+ *
  * @param groupId {number}
  * @param postId {number}
  */
 const pinWallPost = async function(groupId, postId) {
-  const groupVk = await getVkForGroup(groupId);
+  const vk = getUserVk();
 
-  await withRetry(() => groupVk.api.wall.pin({
+  await withRetry(() => vk.api.wall.pin({
     owner_id: groupId * -1,
     post_id: postId
   }), 3, 1500);
