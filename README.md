@@ -109,6 +109,9 @@ npm run vk:test-group-token -- 219706249
 
 # Netlify HTTP (after deploy)
 # /.netlify/functions/manual-daily-tiles?sign=aries
+# /.netlify/functions/manual-weekly-tiles?sign=aries
+# /.netlify/functions/manual-weekly-tiles?bg=love
+# /.netlify/functions/manual-weekly-tiles?slot=0
 # /.netlify/functions/manual-daily-horo?slot=0
 # /.netlify/functions/manual-weekly-horo?slot=5
 ```
