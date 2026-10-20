@@ -2,7 +2,6 @@ const getSheetDoc = require('../utils/getSheetDoc');
 const {TYPES, HOROSCOPES} = require('../constants');
 const getDate = require('../utils/getDate');
 const postWallWithPromo = require('./postWallWithPromo');
-const buildPostGuid = postWallWithPromo.buildPostGuid;
 const {isTileFresh} = require('./tileFreshness');
 const {getVkForGroup} = require('../utils/getVkGroupToken');
 
@@ -130,8 +129,7 @@ const postCollageSlot = async function(rows, type, part, expectedDate) {
     owner_id: type.groupId * -1,
     from_group: 1,
     message,
-    attachments: part.signIndexes.map(ind => rows[ind][`${type.name}_image`]),
-    guid: buildPostGuid(`${type.name}-collage-${part.partNumber}`)
+    attachments: part.signIndexes.map(ind => rows[ind][`${type.name}_image`])
   });
 };
 
@@ -166,8 +164,7 @@ const postSignSlot = async function(rows, index, expectedDate) {
     owner_id: horoscope.groupId * -1,
     from_group: 1,
     message,
-    attachments: rows[index].common_image,
-    guid: buildPostGuid(`sign-${horoscope.name}`)
+    attachments: rows[index].common_image
   });
 };
 
