@@ -6,7 +6,7 @@ Automated horoscope posting for 17 VK communities. Texts from [ignio.com](https:
 
 1. **Fetch** daily/weekly XML into Google Sheet  
 2. **Generate** PNG tiles (Sharp + Noto Sans) and upload to VK  
-3. **Post** collages (5 type groups), sign posts (12 groups), promo footer + link comment  
+3. **Post** collages (5 type groups) and sign posts (12 groups) — one wall post per cron minute (Netlify scheduled ~30s limit)  
 
 ## VK groups
 
@@ -18,14 +18,31 @@ Automated horoscope posting for 17 VK communities. Texts from [ignio.com](https:
 | Cron | Function |
 |------|----------|
 | `0 4 * * *` | `schedule-fetch-daily-data` |
-| `0-11 5 * * *` | `schedule-post-daily-tile-image` (1 sign × 5 types / min) |
+| `0-11 7 * * *` | `schedule-post-daily-tile-image` (1 sign × 5 types / min) |
 | `0-11 17 * * *` | `schedule-post-daily-tile-image-pm` (backup tiles) |
-| `0,5,10,15 19 * * *` | `schedule-post-daily-horo-step-1` … `step-4` (collage 1+2, then sign posts) |
+| `0-21 19,20 * * *` | `schedule-post-daily-horo` (1 post / min; 20:xx = repair) |
 | Sun `15 4 * * 0` | `schedule-fetch-weekly-data` |
 | Sun `0-16 6 * * 0` | `schedule-post-weekly-tile-image` |
-| Sun `0,5,10 18 * * 0` | `schedule-post-weekly-horo-step-1` … `step-3` (5 groups + 12 signs, pinned) |
+| Sun+Mon `0-16 18 * * 0,1` | `schedule-post-weekly-horo` (1 post+pin / min; Mon = repair) |
 
 MSK = UTC+3 (e.g. `19:00 UTC` → 22:00 MSK).
+
+### Daily post slots (`minute` = slot)
+
+| Slot | What |
+|------|------|
+| 0–4 | Collage part 1 (common → erotic) |
+| 5–9 | Collage part 2 |
+| 10–21 | Sign groups (aries → pisces) |
+
+Post steps **do not** regenerate tiles: if `*_image_date` is stale, the slot fails fast. Generate tiles via tile crons (or locally) first.
+
+### Weekly post slots
+
+| Slot | What |
+|------|------|
+| 0–4 | Type group weekly summary + pin |
+| 5–16 | Sign group weekly post + pin |
 
 ## Google Sheet
 
@@ -92,11 +109,11 @@ npm run vk:test-group-token -- 219706249
 
 # Netlify HTTP (after deploy)
 # /.netlify/functions/manual-daily-tiles?sign=aries
-# /.netlify/functions/manual-daily-horo?step=2
-# /.netlify/functions/manual-weekly-horo?step=1
+# /.netlify/functions/manual-daily-horo?slot=0
+# /.netlify/functions/manual-weekly-horo?slot=5
 ```
 
-Do not invoke `schedule-post-daily-tile-image` outside minutes `0–11` — it exits early by design.
+Do not invoke `schedule-post-daily-tile-image` outside minutes `0–11` — it exits early by design. Same for post crons outside their slot minutes.
 
 ## Promo
 

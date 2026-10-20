@@ -1,13 +1,20 @@
 const scheduledHandler = require('./scheduledHandler');
 const postDailyWalls = require('../post/postDailyWalls');
+const {DAILY_SLOT_COUNT} = postDailyWalls;
 
 /**
- * @param stepNumber {number} 1–4 (collage 1, collage 2, signs 1–6, signs 7–12)
+ * Scheduled handler: post one daily slot from current UTC minute.
  */
-const createDailyHoroHandler = function(stepNumber) {
+const createDailyHoroHandler = function() {
   return scheduledHandler(async function() {
-    console.log('post-daily-horo step', stepNumber);
-    await postDailyWalls(stepNumber);
+    const slot = new Date().getMinutes();
+
+    if (slot >= DAILY_SLOT_COUNT) {
+      return;
+    }
+
+    console.log('post-daily-horo slot', slot);
+    await postDailyWalls(slot);
   });
 };
 

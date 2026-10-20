@@ -1,34 +1,36 @@
 const scheduledHandler = require('../../src/utils/scheduledHandler');
 const postWeeklyWalls = require('../../src/post/postWeeklyWalls');
+const {WEEKLY_SLOT_COUNT} = postWeeklyWalls;
 
 /**
- * Manual run. Examples:
- *   /.netlify/functions/manual-weekly-horo?step=1
+ * Manual run — one post (+ pin) per call.
+ *   /.netlify/functions/manual-weekly-horo?slot=0
  *
- * step 1 — 5 type groups (weekly summary + pin)
- * step 2 — sign groups 1–6
- * step 3 — sign groups 7–12
+ * Slots: 0–4 type groups, 5–16 sign groups.
  */
 const handler = scheduledHandler(async function(event) {
-  const step = Number(event?.queryStringParameters?.step);
+  const slot = Number(event?.queryStringParameters?.slot);
 
-  if (!Number.isInteger(step) || step < 1 || step > 3) {
+  if (!Number.isInteger(slot) || slot < 0 || slot >= WEEKLY_SLOT_COUNT) {
     return {
       statusCode: 400,
       body: JSON.stringify({
-        error: 'Query param step is required (1–3)',
-        example: '/.netlify/functions/manual-weekly-horo?step=1'
+        error: `Query param slot is required (0–${WEEKLY_SLOT_COUNT - 1})`,
+        example: '/.netlify/functions/manual-weekly-horo?slot=0',
+        slots: {
+          '0-4': 'type groups (common, business, love, health, erotic)',
+          '5-16': 'sign groups (aries … pisces)'
+        }
       })
     };
   }
 
-  console.log('manual-weekly-horo step', step);
-
-  await postWeeklyWalls(step);
+  console.log('manual-weekly-horo slot', slot);
+  const result = await postWeeklyWalls(slot);
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ok: true, step})
+    body: JSON.stringify({ok: true, slot, result})
   };
 });
 

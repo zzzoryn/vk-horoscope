@@ -1,25 +1,72 @@
-const {VK} = require('vk-io');
 const getSheetDoc = require('../utils/getSheetDoc');
 const {TYPES, HOROSCOPES} = require('../constants');
 const postWallWithPromo = require('./postWallWithPromo');
-const ensureWeeklyTiles = require('./ensureWeeklyTiles');
-const ensureWeeklyBgImages = require('./ensureWeeklyBgImages');
+const {isTileFresh} = require('./tileFreshness');
 const pinWallPost = require('./pinWallPost');
 const {extractPostId} = pinWallPost;
+const {getVkForGroup} = require('../utils/getVkGroupToken');
+
+/** Type slots 0–4 + sign slots 5–16 */
+const WEEKLY_SLOT_COUNT = TYPES.length + HOROSCOPES.length;
 
 const buildWeeklyPostGuid = function(scope, weeklyDate) {
   const dateKey = String(weeklyDate).replace(/\s+/g, '-');
   return `vkhoro-${scope}-${dateKey}`.slice(0, 32);
 };
 
-const assertWeeklyBgImages = function(rows) {
-  const missing = TYPES
-    .filter(type => !rows[0][`${type.name}_bg_image`])
-    .map(type => type.name);
-
-  if (missing.length) {
-    throw new Error(`Weekly summary: missing bg images for ${missing.join(', ')}`);
+const getWallItems = function(response) {
+  if (Array.isArray(response)) {
+    return response;
   }
+
+  return response?.items || [];
+};
+
+const findExistingWallPost = async function(groupId, messagePrefix) {
+  const groupVk = await getVkForGroup(groupId);
+  const response = await groupVk.api.wall.get({
+    owner_id: groupId * -1,
+    filter: 'owner',
+    count: 50
+  });
+
+  return getWallItems(response).find(post =>
+    String(post.message || '').startsWith(messagePrefix)
+  );
+};
+
+const assertWeeklyBgImage = function(rows, type) {
+  if (rows[0][`${type.name}_bg_image`]) {
+    return;
+  }
+
+  throw new Error(
+    `Weekly bg image missing for ${type.name}. ` +
+    'Wait for schedule-post-weekly-tile-image (minutes 12–16).'
+  );
+};
+
+const assertWeeklySignTileFresh = function(rows, index, weeklyDate) {
+  if (isTileFresh(rows[index], 'common', weeklyDate)) {
+    return;
+  }
+
+  throw new Error(
+    `Weekly sign tile not ready for ${weeklyDate}: common/${HOROSCOPES[index].name}. ` +
+    'Wait for schedule-post-weekly-tile-image (minutes 0–11).'
+  );
+};
+
+const resolveWeeklySlot = function(slot) {
+  if (!Number.isInteger(slot) || slot < 0 || slot >= WEEKLY_SLOT_COUNT) {
+    throw new Error(`postWeeklyWalls: slot must be 0–${WEEKLY_SLOT_COUNT - 1}, got ${slot}`);
+  }
+
+  if (slot < TYPES.length) {
+    return {kind: 'type', type: TYPES[slot]};
+  }
+
+  return {kind: 'sign', index: slot - TYPES.length};
 };
 
 const postWallWithPromoAndPin = async function(postParams, groupId) {
@@ -41,13 +88,8 @@ const postWallWithPromoAndPin = async function(postParams, groupId) {
   return response;
 };
 
-const postTypeGroupSummaries = async function(rows) {
-  const weeklyDate = rows[0].date;
-
-  return Promise.all(TYPES.map(type => postWallWithPromoAndPin({
-    owner_id: type.groupId * -1,
-    from_group: 1,
-    message: `Гороскоп на неделю (${weeklyDate}):\n
+const getTypeSummaryMessage = function(type, rows, weeklyDate) {
+  return `Гороскоп на неделю (${weeklyDate}):\n
 &#9800; Овен\n${rows[0][type.name]}\n
 &#9801; Телец\n${rows[1][type.name]}\n
 &#9802; Близнецы\n${rows[2][type.name]}\n
@@ -59,67 +101,120 @@ const postTypeGroupSummaries = async function(rows) {
 &#9808; Стрелец\n${rows[8][type.name]}\n
 &#9809; Козерог\n${rows[9][type.name]}\n
 &#9810; Водолей\n${rows[10][type.name]}\n
-&#9811; Рыбы\n${rows[11][type.name]}`,
-    attachments: rows[0][`${type.name}_bg_image`],
-    guid: buildWeeklyPostGuid(`weekly-${type.name}-summary`, weeklyDate)
-  }, type.groupId)));
+&#9811; Рыбы\n${rows[11][type.name]}`;
 };
 
-const postSignGroupWeekly = async function(rows, indexes) {
-  const weeklyDate = rows[0].date;
-
-  return Promise.all(indexes.map(index => postWallWithPromoAndPin({
-    owner_id: HOROSCOPES[index].groupId * -1,
-    from_group: 1,
-    message: `Гороскоп на неделю (${weeklyDate}):\n
+const getSignWeeklyMessage = function(index, rows, weeklyDate) {
+  return `Гороскоп на неделю (${weeklyDate}):\n
 &#10084; Любовь: ${rows[index].love}\n
 &#9752; Здоровье: ${rows[index].health}\n
 &#128176; Бизнес: ${rows[index].business}\n
 &#128139; Постель: ${rows[index].erotic}\n
-#гороскоп #${HOROSCOPES[index].title.toLowerCase()} #любовь #здоровье #бизнес #постель`,
-    attachments: rows[index].common_image,
-    guid: buildWeeklyPostGuid(`weekly-sign-${HOROSCOPES[index].name}`, weeklyDate)
-  }, HOROSCOPES[index].groupId)));
+#гороскоп #${HOROSCOPES[index].title.toLowerCase()} #любовь #здоровье #бизнес #постель`;
 };
 
-const SIGN_PART_1 = [0, 1, 2, 3, 4, 5];
-const SIGN_PART_2 = [6, 7, 8, 9, 10, 11];
+const postTypeSlot = async function(rows, type, weeklyDate) {
+  assertWeeklyBgImage(rows, type);
+
+  const message = getTypeSummaryMessage(type, rows, weeklyDate);
+  const messagePrefix = `Гороскоп на неделю (${weeklyDate})`;
+  let existingPost;
+
+  try {
+    existingPost = await findExistingWallPost(type.groupId, messagePrefix);
+  } catch (error) {
+    console.warn('postWeeklyWalls: failed to check existing type post', {
+      type: type.name,
+      code: error.code,
+      message: error.message
+    });
+  }
+
+  if (existingPost) {
+    console.log('postWeeklyWalls: type post already exists', {
+      type: type.name,
+      postId: existingPost.id
+    });
+
+    return {post_id: existingPost.id, skipped: true, kind: 'type'};
+  }
+
+  return postWallWithPromoAndPin({
+    owner_id: type.groupId * -1,
+    from_group: 1,
+    message,
+    attachments: rows[0][`${type.name}_bg_image`],
+    guid: buildWeeklyPostGuid(`weekly-${type.name}-summary`, weeklyDate)
+  }, type.groupId);
+};
+
+const postSignSlot = async function(rows, index, weeklyDate) {
+  assertWeeklySignTileFresh(rows, index, weeklyDate);
+
+  const horoscope = HOROSCOPES[index];
+  const message = getSignWeeklyMessage(index, rows, weeklyDate);
+  const messagePrefix = `Гороскоп на неделю (${weeklyDate})`;
+  let existingPost;
+
+  try {
+    existingPost = await findExistingWallPost(horoscope.groupId, messagePrefix);
+  } catch (error) {
+    console.warn('postWeeklyWalls: failed to check existing sign post', {
+      sign: horoscope.name,
+      code: error.code,
+      message: error.message
+    });
+  }
+
+  if (existingPost) {
+    console.log('postWeeklyWalls: sign post already exists', {
+      sign: horoscope.name,
+      postId: existingPost.id
+    });
+
+    return {post_id: existingPost.id, skipped: true, kind: 'sign'};
+  }
+
+  return postWallWithPromoAndPin({
+    owner_id: horoscope.groupId * -1,
+    from_group: 1,
+    message,
+    attachments: rows[index].common_image,
+    guid: buildWeeklyPostGuid(`weekly-sign-${horoscope.name}`, weeklyDate)
+  }, horoscope.groupId);
+};
 
 /**
- * @param stepNumber {Number} 1–3 (see schedule-post-weekly-horo-step-*)
- * @return {Promise<Awaited<*>[]>}
+ * One wall post (+ pin) per invocation (fits Netlify scheduled ~30s limit).
+ * Slots: 0–4 type groups, 5–16 sign groups.
+ *
+ * @param slot {number}
+ * @return {Promise<object>}
  */
-const postWeeklyWalls = async function(stepNumber) {
-  const uploadVk = new VK({token: process.env.VK_API_TOKEN});
+const postWeeklyWalls = async function(slot) {
+  const resolved = resolveWeeklySlot(slot);
 
   const doc = await getSheetDoc();
-  const sheet = doc.sheetsById[1404558085];
-  let rows = await sheet.getRows();
+  const rows = await doc.sheetsById[1404558085].getRows();
+  const weeklyDate = rows[0].date;
 
-  if (stepNumber === 1) {
-    rows = await ensureWeeklyBgImages(rows);
-    assertWeeklyBgImages(rows);
-
-    const failed = await ensureWeeklyTiles(uploadVk, rows);
-
-    if (failed.length) {
-      console.warn('postWeeklyWalls step 1: tile regeneration failures', failed);
-    }
-
-    return await postTypeGroupSummaries(rows);
+  if (!weeklyDate) {
+    throw new Error('Weekly sheet rows[0].date is empty — run schedule-fetch-weekly-data first');
   }
 
-  if (stepNumber === 2) {
-    await ensureWeeklyTiles(uploadVk, rows);
-    return await postSignGroupWeekly(rows, SIGN_PART_1);
+  console.log('postWeeklyWalls slot', slot, resolved.kind, {
+    weeklyDate,
+    type: resolved.type?.name,
+    sign: resolved.index != null ? HOROSCOPES[resolved.index].name : undefined
+  });
+
+  if (resolved.kind === 'type') {
+    return postTypeSlot(rows, resolved.type, weeklyDate);
   }
 
-  if (stepNumber === 3) {
-    await ensureWeeklyTiles(uploadVk, rows);
-    return await postSignGroupWeekly(rows, SIGN_PART_2);
-  }
-
-  throw new Error(`postWeeklyWalls: unknown step ${stepNumber}`);
+  return postSignSlot(rows, resolved.index, weeklyDate);
 };
 
 module.exports = postWeeklyWalls;
+module.exports.WEEKLY_SLOT_COUNT = WEEKLY_SLOT_COUNT;
+module.exports.resolveWeeklySlot = resolveWeeklySlot;

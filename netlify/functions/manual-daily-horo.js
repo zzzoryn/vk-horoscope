@@ -1,36 +1,37 @@
 const scheduledHandler = require('../../src/utils/scheduledHandler');
 const postDailyWalls = require('../../src/post/postDailyWalls');
+const {DAILY_SLOT_COUNT} = postDailyWalls;
 
 /**
- * Manual run. Examples:
- *   /.netlify/functions/manual-daily-horo?step=2
- *   /.netlify/functions/manual-daily-horo?step=1
+ * Manual run — one post per call (keeps under function time limit).
+ *   /.netlify/functions/manual-daily-horo?slot=0
  *
- * step 1 — collage part 1 (signs 1–6)
- * step 2 — collage part 2 (signs 7–12)
- * step 3 — sign group posts 1–6
- * step 4 — sign group posts 7–12
+ * Slots: 0–4 collage part 1 (by type), 5–9 collage part 2, 10–21 sign groups.
  */
 const handler = scheduledHandler(async function(event) {
-  const step = Number(event?.queryStringParameters?.step);
+  const slot = Number(event?.queryStringParameters?.slot);
 
-  if (!Number.isInteger(step) || step < 1 || step > 4) {
+  if (!Number.isInteger(slot) || slot < 0 || slot >= DAILY_SLOT_COUNT) {
     return {
       statusCode: 400,
       body: JSON.stringify({
-        error: 'Query param step is required (1–4)',
-        example: '/.netlify/functions/manual-daily-horo?step=2'
+        error: `Query param slot is required (0–${DAILY_SLOT_COUNT - 1})`,
+        example: '/.netlify/functions/manual-daily-horo?slot=0',
+        slots: {
+          '0-4': 'collage part 1 (common, business, love, health, erotic)',
+          '5-9': 'collage part 2',
+          '10-21': 'sign groups (aries … pisces)'
+        }
       })
     };
   }
 
-  console.log('manual-daily-horo step', step);
-
-  await postDailyWalls(step);
+  console.log('manual-daily-horo slot', slot);
+  const result = await postDailyWalls(slot);
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ok: true, step})
+    body: JSON.stringify({ok: true, slot, result})
   };
 });
 

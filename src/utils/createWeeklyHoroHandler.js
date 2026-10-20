@@ -1,13 +1,20 @@
 const scheduledHandler = require('./scheduledHandler');
 const postWeeklyWalls = require('../post/postWeeklyWalls');
+const {WEEKLY_SLOT_COUNT} = postWeeklyWalls;
 
 /**
- * @param stepNumber {number} 1 — 5 type groups, 2–3 — sign groups (6+6)
+ * Scheduled handler: post one weekly slot from current UTC minute.
  */
-const createWeeklyHoroHandler = function(stepNumber) {
+const createWeeklyHoroHandler = function() {
   return scheduledHandler(async function() {
-    console.log('post-weekly-horo step', stepNumber);
-    await postWeeklyWalls(stepNumber);
+    const slot = new Date().getMinutes();
+
+    if (slot >= WEEKLY_SLOT_COUNT) {
+      return;
+    }
+
+    console.log('post-weekly-horo slot', slot);
+    await postWeeklyWalls(slot);
   });
 };
 

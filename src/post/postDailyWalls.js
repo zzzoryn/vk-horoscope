@@ -1,10 +1,9 @@
-const {VK} = require('vk-io');
 const getSheetDoc = require('../utils/getSheetDoc');
 const {TYPES, HOROSCOPES} = require('../constants');
 const getDate = require('../utils/getDate');
 const postWallWithPromo = require('./postWallWithPromo');
 const buildPostGuid = postWallWithPromo.buildPostGuid;
-const ensureDailyTiles = require('./ensureDailyTiles');
+const {isTileFresh} = require('./tileFreshness');
 const {getVkForGroup} = require('../utils/getVkGroupToken');
 
 const COLLAGE_PART_1 = [0, 1, 2, 3, 4, 5];
@@ -17,30 +16,20 @@ const COLLAGE_PARTS = [{
   signIndexes: COLLAGE_PART_2
 }];
 
-const maxTilesForSigns = signIndexes => signIndexes.length * TYPES.length;
-
-const assertCollageAttachments = function(rows, signIndexes, partNumber) {
-  const missing = [];
-
-  for (const type of TYPES) {
-    for (const index of signIndexes) {
-      const attachment = rows[index][`${type.name}_image`];
-
-      if (!attachment) {
-        missing.push(`${type.name}/${HOROSCOPES[index].name}`);
-      }
-    }
-  }
-
-  if (missing.length) {
-    throw new Error(
-      `Collage part ${partNumber}: missing tile attachments: ${missing.join(', ')}`
-    );
-  }
-};
+/** Collage slots 0–9 + sign slots 10–21 */
+const DAILY_SLOT_COUNT = TYPES.length * COLLAGE_PARTS.length + HOROSCOPES.length;
 
 const getCollageMessage = function(type, partNumber, date) {
   return `${type.title} на ${date} (Часть ${partNumber}):`;
+};
+
+const getSignMessage = function(index, date, rows) {
+  return `Гороскоп на ${date}\n
+&#10084; Любовь: ${rows[index].love}\n
+&#9752; Здоровье: ${rows[index].health}\n
+&#128176; Бизнес: ${rows[index].business}\n
+&#128139; Постель: ${rows[index].erotic}\n
+#гороскоп #${HOROSCOPES[index].title.toLowerCase()} #любовь #здоровье #бизнес #постель`;
 };
 
 const getWallItems = function(response) {
@@ -51,129 +40,165 @@ const getWallItems = function(response) {
   return response?.items || [];
 };
 
-const findExistingCollagePost = async function(type, partNumber, date) {
-  const groupVk = await getVkForGroup(type.groupId);
-  const message = getCollageMessage(type, partNumber, date);
+const findExistingWallPost = async function(groupId, messagePrefix) {
+  const groupVk = await getVkForGroup(groupId);
   const response = await groupVk.api.wall.get({
-    owner_id: type.groupId * -1,
+    owner_id: groupId * -1,
     filter: 'owner',
     count: 50
   });
 
-  return getWallItems(response).find(post => String(post.message || '').startsWith(message));
+  return getWallItems(response).find(post =>
+    String(post.message || '').startsWith(messagePrefix)
+  );
 };
 
-const ensureAndPostCollagePart = async function(uploadVk, rows, part, expectedDate) {
-  const failed = await ensureDailyTiles(uploadVk, rows, part.signIndexes, expectedDate, {
-    maxRegenerations: maxTilesForSigns(part.signIndexes)
-  });
+const assertCollageTilesFresh = function(rows, type, signIndexes, expectedDate) {
+  const missing = [];
 
-  if (failed.length) {
-    console.warn(`postDailyWalls collage part ${part.partNumber}: tile regeneration failures`, failed);
+  for (const index of signIndexes) {
+    if (!isTileFresh(rows[index], type.name, expectedDate)) {
+      missing.push(`${type.name}/${HOROSCOPES[index].name}`);
+    }
   }
 
-  assertCollageAttachments(rows, part.signIndexes, part.partNumber);
+  if (missing.length) {
+    throw new Error(
+      `Daily collage tiles not ready for ${expectedDate}: ${missing.join(', ')}. ` +
+      'Wait for schedule-post-daily-tile-image (or pm backup), do not regenerate in post step.'
+    );
+  }
+};
 
-  return Promise.all(TYPES.map(async type => {
-    let existingPost;
+const assertSignTileFresh = function(rows, index, expectedDate) {
+  if (isTileFresh(rows[index], 'common', expectedDate)) {
+    return;
+  }
 
-    try {
-      existingPost = await findExistingCollagePost(type, part.partNumber, expectedDate);
-    } catch (error) {
-      console.warn('postDailyWalls: failed to check existing collage post', {
-        type: type.name,
-        partNumber: part.partNumber,
-        code: error.code,
-        message: error.message
-      });
-    }
+  throw new Error(
+    `Daily sign tile not ready for ${expectedDate}: common/${HOROSCOPES[index].name}. ` +
+    'Wait for schedule-post-daily-tile-image (or pm backup).'
+  );
+};
 
-    if (existingPost) {
-      console.log('postDailyWalls: collage part already exists', {
-        type: type.name,
-        partNumber: part.partNumber,
-        postId: existingPost.id
-      });
+const resolveDailySlot = function(slot) {
+  if (!Number.isInteger(slot) || slot < 0 || slot >= DAILY_SLOT_COUNT) {
+    throw new Error(`postDailyWalls: slot must be 0–${DAILY_SLOT_COUNT - 1}, got ${slot}`);
+  }
 
-      return {
-        post_id: existingPost.id,
-        skipped: true
-      };
-    }
+  if (slot < TYPES.length * COLLAGE_PARTS.length) {
+    const part = COLLAGE_PARTS[Math.floor(slot / TYPES.length)];
+    const type = TYPES[slot % TYPES.length];
 
-    return postWallWithPromo({
-      owner_id: type.groupId * -1,
-      from_group: 1,
-      message: getCollageMessage(type, part.partNumber, expectedDate),
-      attachments: part.signIndexes.map(ind => rows[ind][`${type.name}_image`]),
-      guid: buildPostGuid(`${type.name}-collage-${part.partNumber}`)
+    return {kind: 'collage', part, type};
+  }
+
+  return {
+    kind: 'sign',
+    index: slot - TYPES.length * COLLAGE_PARTS.length
+  };
+};
+
+const postCollageSlot = async function(rows, type, part, expectedDate) {
+  assertCollageTilesFresh(rows, type, part.signIndexes, expectedDate);
+
+  const message = getCollageMessage(type, part.partNumber, expectedDate);
+  let existingPost;
+
+  try {
+    existingPost = await findExistingWallPost(type.groupId, message);
+  } catch (error) {
+    console.warn('postDailyWalls: failed to check existing collage post', {
+      type: type.name,
+      partNumber: part.partNumber,
+      code: error.code,
+      message: error.message
     });
-  }));
-};
-
-const postCollageParts = async function(uploadVk, rows, expectedDate, primaryPartNumber) {
-  const orderedParts = COLLAGE_PARTS.slice().sort(part => {
-    if (part.partNumber === primaryPartNumber) {
-      return -1;
-    }
-
-    return 1;
-  });
-  const results = [];
-
-  for (const part of orderedParts) {
-    results.push(await ensureAndPostCollagePart(uploadVk, rows, part, expectedDate));
   }
 
-  return results.flat();
+  if (existingPost) {
+    console.log('postDailyWalls: collage already exists', {
+      type: type.name,
+      partNumber: part.partNumber,
+      postId: existingPost.id
+    });
+
+    return {post_id: existingPost.id, skipped: true, kind: 'collage'};
+  }
+
+  return postWallWithPromo({
+    owner_id: type.groupId * -1,
+    from_group: 1,
+    message,
+    attachments: part.signIndexes.map(ind => rows[ind][`${type.name}_image`]),
+    guid: buildPostGuid(`${type.name}-collage-${part.partNumber}`)
+  });
 };
 
-const postSignPosts = async function(rows, indexes) {
-  return Promise.all(indexes.map(index => postWallWithPromo({
-    owner_id: HOROSCOPES[index].groupId * -1,
+const postSignSlot = async function(rows, index, expectedDate) {
+  assertSignTileFresh(rows, index, expectedDate);
+
+  const horoscope = HOROSCOPES[index];
+  const message = getSignMessage(index, expectedDate, rows);
+  const messagePrefix = `Гороскоп на ${expectedDate}`;
+  let existingPost;
+
+  try {
+    existingPost = await findExistingWallPost(horoscope.groupId, messagePrefix);
+  } catch (error) {
+    console.warn('postDailyWalls: failed to check existing sign post', {
+      sign: horoscope.name,
+      code: error.code,
+      message: error.message
+    });
+  }
+
+  if (existingPost) {
+    console.log('postDailyWalls: sign post already exists', {
+      sign: horoscope.name,
+      postId: existingPost.id
+    });
+
+    return {post_id: existingPost.id, skipped: true, kind: 'sign'};
+  }
+
+  return postWallWithPromo({
+    owner_id: horoscope.groupId * -1,
     from_group: 1,
-    message: `Гороскоп на ${getDate()}\n
-&#10084; Любовь: ${rows[index].love}\n
-&#9752; Здоровье: ${rows[index].health}\n
-&#128176; Бизнес: ${rows[index].business}\n
-&#128139; Постель: ${rows[index].erotic}\n
-#гороскоп #${HOROSCOPES[index].title.toLowerCase()} #любовь #здоровье #бизнес #постель`,
-    attachments: rows[index][`common_image`],
-    guid: buildPostGuid(`sign-${HOROSCOPES[index].name}`)
-  })));
+    message,
+    attachments: rows[index].common_image,
+    guid: buildPostGuid(`sign-${horoscope.name}`)
+  });
 };
 
 /**
- * @param stepNumber {Number} 1–4 (see schedule-post-daily-horo-step-*)
- * @return {Promise<Awaited<*>[]>}
+ * One wall post per invocation (fits Netlify scheduled ~30s limit).
+ * Slots: 0–4 collage part1 by type, 5–9 collage part2, 10–21 sign groups.
+ *
+ * @param slot {number}
+ * @return {Promise<object>}
  */
-const postDailyWalls = async function(stepNumber) {
-  const uploadVk = new VK({token: process.env.VK_API_TOKEN});
+const postDailyWalls = async function(slot) {
   const expectedDate = getDate();
+  const resolved = resolveDailySlot(slot);
 
   const doc = await getSheetDoc();
-  const sheet = doc.sheetsByIndex[0];
-  const rows = await sheet.getRows();
+  const rows = await doc.sheetsByIndex[0].getRows();
 
-  if (stepNumber === 1) {
-    return await postCollageParts(uploadVk, rows, expectedDate, 1);
+  console.log('postDailyWalls slot', slot, resolved.kind, {
+    expectedDate,
+    type: resolved.type?.name,
+    part: resolved.part?.partNumber,
+    sign: resolved.index != null ? HOROSCOPES[resolved.index].name : undefined
+  });
+
+  if (resolved.kind === 'collage') {
+    return postCollageSlot(rows, resolved.type, resolved.part, expectedDate);
   }
 
-  if (stepNumber === 2) {
-    return await postCollageParts(uploadVk, rows, expectedDate, 2);
-  }
-
-  if (stepNumber === 3) {
-    await ensureDailyTiles(uploadVk, rows, COLLAGE_PART_1, expectedDate);
-    return await postSignPosts(rows, COLLAGE_PART_1);
-  }
-
-  if (stepNumber === 4) {
-    await ensureDailyTiles(uploadVk, rows, COLLAGE_PART_2, expectedDate);
-    return await postSignPosts(rows, COLLAGE_PART_2);
-  }
-
-  throw new Error(`postDailyWalls: unknown step ${stepNumber}`);
+  return postSignSlot(rows, resolved.index, expectedDate);
 };
 
 module.exports = postDailyWalls;
+module.exports.DAILY_SLOT_COUNT = DAILY_SLOT_COUNT;
+module.exports.resolveDailySlot = resolveDailySlot;
