@@ -136,16 +136,30 @@ const postTypeSlot = async function(rows, type, weeklyDate) {
       postId: existingPost.id
     });
 
-    return {post_id: existingPost.id, skipped: true, kind: 'type'};
+    return {
+      post_id: existingPost.id,
+      owner_id: type.groupId * -1,
+      wall_url: `https://vk.com/wall-${type.groupId}_${existingPost.id}`,
+      skipped: true,
+      kind: 'type',
+      weeklyDate,
+      group: type.name
+    };
   }
 
-  return postWallWithPromoAndPin({
+  const response = await postWallWithPromoAndPin({
     owner_id: type.groupId * -1,
     from_group: 1,
     message,
     attachments: rows[0][`${type.name}_bg_image`],
     guid: buildWeeklyPostGuid(`weekly-${type.name}-summary`, weeklyDate)
   }, type.groupId);
+
+  return Object.assign({}, response, {
+    kind: 'type',
+    weeklyDate,
+    group: type.name
+  });
 };
 
 const postSignSlot = async function(rows, index, weeklyDate) {
@@ -172,16 +186,30 @@ const postSignSlot = async function(rows, index, weeklyDate) {
       postId: existingPost.id
     });
 
-    return {post_id: existingPost.id, skipped: true, kind: 'sign'};
+    return {
+      post_id: existingPost.id,
+      owner_id: horoscope.groupId * -1,
+      wall_url: `https://vk.com/wall-${horoscope.groupId}_${existingPost.id}`,
+      skipped: true,
+      kind: 'sign',
+      weeklyDate,
+      group: horoscope.name
+    };
   }
 
-  return postWallWithPromoAndPin({
+  const response = await postWallWithPromoAndPin({
     owner_id: horoscope.groupId * -1,
     from_group: 1,
     message,
     attachments: rows[index].common_image,
     guid: buildWeeklyPostGuid(`weekly-sign-${horoscope.name}`, weeklyDate)
   }, horoscope.groupId);
+
+  return Object.assign({}, response, {
+    kind: 'sign',
+    weeklyDate,
+    group: horoscope.name
+  });
 };
 
 /**
