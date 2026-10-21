@@ -6,7 +6,7 @@ const {DAILY_SLOT_COUNT} = postDailyWalls;
 /**
  * One collage/sign post per minute.
  * Slots 0–9 collage, 10–21 signs.
- * 19:xx primary, 20:xx repair (skip if already posted).
+ * Only 19:xx — a second hour caused duplicates when the "already posted" check failed.
  */
 const handler = scheduledHandler(async function() {
   const slot = new Date().getMinutes();
@@ -20,6 +20,6 @@ const handler = scheduledHandler(async function() {
 });
 
 exports.handler = schedule(
-  '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21 19,20 * * *',
+  '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21 19 * * *',
   handler
 );

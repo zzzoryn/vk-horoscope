@@ -118,11 +118,12 @@ const postTypeSlot = async function(rows, type, weeklyDate) {
   try {
     existingPost = await findExistingWallPost(type.groupId, messagePrefix);
   } catch (error) {
-    console.warn('postWeeklyWalls: failed to check existing type post', {
+    console.error('postWeeklyWalls: failed to check existing type post', {
       type: type.name,
       code: error.code,
       message: error.message
     });
+    throw error;
   }
 
   if (existingPost) {
@@ -167,11 +168,12 @@ const postSignSlot = async function(rows, index, weeklyDate) {
   try {
     existingPost = await findExistingWallPost(horoscope.groupId, messagePrefix);
   } catch (error) {
-    console.warn('postWeeklyWalls: failed to check existing sign post', {
+    console.error('postWeeklyWalls: failed to check existing sign post', {
       sign: horoscope.name,
       code: error.code,
       message: error.message
     });
+    throw error;
   }
 
   if (existingPost) {

@@ -107,12 +107,13 @@ const postCollageSlot = async function(rows, type, part, expectedDate) {
   try {
     existingPost = await findExistingWallPost(type.groupId, message);
   } catch (error) {
-    console.warn('postDailyWalls: failed to check existing collage post', {
+    console.error('postDailyWalls: failed to check existing collage post', {
       type: type.name,
       partNumber: part.partNumber,
       code: error.code,
       message: error.message
     });
+    throw error;
   }
 
   if (existingPost) {
@@ -144,11 +145,12 @@ const postSignSlot = async function(rows, index, expectedDate) {
   try {
     existingPost = await findExistingWallPost(horoscope.groupId, messagePrefix);
   } catch (error) {
-    console.warn('postDailyWalls: failed to check existing sign post', {
+    console.error('postDailyWalls: failed to check existing sign post', {
       sign: horoscope.name,
       code: error.code,
       message: error.message
     });
+    throw error;
   }
 
   if (existingPost) {
