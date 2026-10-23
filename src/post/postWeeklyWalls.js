@@ -9,6 +9,11 @@ const {getVkForGroup} = require('../utils/getVkGroupToken');
 /** Type slots 0–4 + sign slots 5–16 */
 const WEEKLY_SLOT_COUNT = TYPES.length + HOROSCOPES.length;
 
+const buildWeeklyPostGuid = function(scope, weeklyDate) {
+  const dateKey = String(weeklyDate).replace(/\s+/g, '-');
+  return `vkhoro-${scope}-${dateKey}`.slice(0, 32);
+};
+
 const getWallItems = function(response) {
   if (Array.isArray(response)) {
     return response;
@@ -147,7 +152,8 @@ const postTypeSlot = async function(rows, type, weeklyDate) {
     owner_id: type.groupId * -1,
     from_group: 1,
     message,
-    attachments: rows[0][`${type.name}_bg_image`]
+    attachments: rows[0][`${type.name}_bg_image`],
+    guid: buildWeeklyPostGuid(`weekly-${type.name}-summary`, weeklyDate)
   }, type.groupId);
 
   return Object.assign({}, response, {
@@ -197,7 +203,8 @@ const postSignSlot = async function(rows, index, weeklyDate) {
     owner_id: horoscope.groupId * -1,
     from_group: 1,
     message,
-    attachments: rows[index].common_image
+    attachments: rows[index].common_image,
+    guid: buildWeeklyPostGuid(`weekly-sign-${horoscope.name}`, weeklyDate)
   }, horoscope.groupId);
 
   return Object.assign({}, response, {

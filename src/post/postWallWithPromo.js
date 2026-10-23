@@ -3,9 +3,8 @@ const getDate = require('../utils/getDate');
 const {getVkForGroup, groupIdFromOwnerId} = require('../utils/getVkGroupToken');
 
 /**
- * Legacy helper — do not pass to wall.post.
- * VK keeps guid→post_id forever: after delete, the same guid returns/restores the old id.
- * Dedup posts via wall.get (findExisting*) instead.
+ * Stable guid for wall.post idempotency (same day / same week slot).
+ * Note: after deleting a VK post, the same guid returns the old post_id.
  *
  * @param scope {string}
  * @return {string}
@@ -28,9 +27,7 @@ const enrichPostResponse = function(response, ownerId) {
  * wall.post via community tokens (env or Google Sheet).
  * Promo comment disabled — see commented block below.
  *
- * Do not pass a stable `guid`: after a post is deleted, VK reuses the old post_id.
- *
- * @param params {{ owner_id: number, from_group: number, message: string, attachments?: string|string[] }}
+ * @param params {{ owner_id: number, from_group: number, message: string, attachments?: string|string[], guid?: string }}
  * @return {Promise<{ post_id: number, owner_id: number, wall_url: string }>}
  */
 const postWallWithPromo = async function(params) {
@@ -42,16 +39,22 @@ const postWallWithPromo = async function(params) {
     from_group: params.from_group,
     // message: `${params.message}\n\n${POST_FOOTER}`,
     message: params.message,
-    attachments: params.attachments
+    attachments: params.attachments,
+    guid: params.guid
   });
 
   // Promo comment with link — disabled, may re-enable later.
+  // const commentGuid = params.guid
+  //   ? `${params.guid}-promo`.slice(0, 32)
+  //   : undefined;
+  //
   // try {
   //   await groupVk.api.wall.createComment({
   //     owner_id: params.owner_id,
   //     post_id: response.post_id,
   //     from_group: 1,
-  //     message: COMMUNITY_COMMENT
+  //     message: COMMUNITY_COMMENT,
+  //     guid: commentGuid
   //   });
   // } catch (error) {
   //   console.error('postWallWithPromo: createComment failed', {

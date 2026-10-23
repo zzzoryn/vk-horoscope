@@ -20,10 +20,10 @@ Automated horoscope posting for 17 VK communities. Texts from [ignio.com](https:
 | `0 4 * * *` | `schedule-fetch-daily-data` |
 | `0-11 7 * * *` | `schedule-post-daily-tile-image` (1 sign × 5 types / min) |
 | `0-11 17 * * *` | `schedule-post-daily-tile-image-pm` (backup tiles) |
-| `0-21 19 * * *` | `schedule-post-daily-horo` (1 post / min) |
+| `0-21 19,20 * * *` | `schedule-post-daily-horo` (1 post / min; 20:xx = repair) |
 | Sun `15 4 * * 0` | `schedule-fetch-weekly-data` |
 | Sun `0-16 6 * * 0` | `schedule-post-weekly-tile-image` |
-| Sun `0-16 18 * * 0` | `schedule-post-weekly-horo` (1 post+pin / min) |
+| Sun+Mon `0-16 18 * * 0,1` | `schedule-post-weekly-horo` (1 post+pin / min; Mon = repair) |
 
 MSK = UTC+3 (e.g. `19:00 UTC` → 22:00 MSK).
 

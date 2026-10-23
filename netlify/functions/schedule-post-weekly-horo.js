@@ -6,7 +6,7 @@ const {WEEKLY_SLOT_COUNT} = postWeeklyWalls;
 /**
  * One type/sign weekly post (+ pin) per minute.
  * Slots 0–4 type groups, 5–16 signs.
- * Sunday only — Monday repair duplicated posts when the wall check failed open.
+ * Sunday primary, Monday repair (guid + wall check skip duplicates).
  */
 const handler = scheduledHandler(async function() {
   const slot = new Date().getMinutes();
@@ -20,6 +20,6 @@ const handler = scheduledHandler(async function() {
 });
 
 exports.handler = schedule(
-  '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 18 * * 0',
+  '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 18 * * 0,1',
   handler
 );
