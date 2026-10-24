@@ -15,17 +15,19 @@ Automated horoscope posting for 17 VK communities. Texts from [ignio.com](https:
 
 ## Schedule (UTC)
 
-| Cron | Function |
-|------|----------|
-| `0 4 * * *` | `schedule-fetch-daily-data` |
-| `0-11 7 * * *` | `schedule-post-daily-tile-image` (1 sign × 5 types / min) |
-| `0-11 17 * * *` | `schedule-post-daily-tile-image-pm` (backup tiles) |
-| `0-21 19,20 * * *` | `schedule-post-daily-horo` (1 post / min; 20:xx = repair) |
-| Sun `15 4 * * 0` | `schedule-fetch-weekly-data` |
-| Sun `0-16 6 * * 0` | `schedule-post-weekly-tile-image` |
-| Sun+Mon `0-16 18 * * 0,1` | `schedule-post-weekly-horo` (1 post+pin / min; Mon = repair) |
+Daily sheet is filled **in the evening before posts**, so if publish fails you can still manually post the next calendar day while the sheet still holds that day’s texts/tiles.
 
-MSK = UTC+3 (e.g. `19:00 UTC` → 22:00 MSK).
+| Cron | Function | MSK |
+|------|----------|-----|
+| `0 16 * * *` | `schedule-fetch-daily-data` (texts + `content_date`) | 19:00 |
+| `0-11 17 * * *` | `schedule-post-daily-tile-image` (1 sign × 5 types / min) | 20:00 |
+| `0-11 18 * * *` | `schedule-post-daily-tile-image-pm` (backup tiles) | 21:00 |
+| `0-21 19,20 * * *` | `schedule-post-daily-horo` (1 post / min; 20:xx = repair) | 22:00 / 23:00 |
+| Sun `15 4 * * 0` | `schedule-fetch-weekly-data` | вс 07:15 |
+| Sun `0-16 6 * * 0` | `schedule-post-weekly-tile-image` | вс 09:00 |
+| Sun+Mon `0-16 18 * * 0,1` | `schedule-post-weekly-horo` (1 post+pin / min; Mon = repair) | 21:00 |
+
+MSK = UTC+3.
 
 ### Daily post slots (`minute` = slot)
 
@@ -46,7 +48,17 @@ Post steps **do not** regenerate tiles: if `*_image_date` is stale, the slot fai
 
 ## Google Sheet
 
-Add columns per row: `common_image_date`, `business_image_date`, `love_image_date`, `health_image_date`, `erotic_image_date`.
+Add columns per row: `content_date`, `common_image_date`, `business_image_date`, `love_image_date`, `health_image_date`, `erotic_image_date`.
+
+`content_date` is written by evening fetch (e.g. `25 октября`). Daily posts use it for the wall date / tile freshness, so next-day manual `manual-daily-horo?slot=…` still targets the prepared day until the next evening fetch.
+
+### Function logs tab
+
+Create a sheet tab named **`logs`** (or set `FUNCTION_LOGS_SHEET`) with header row:
+
+`function | updated_at | status | status_code | message | detail`
+
+Each Netlify function upserts its row (slot/minute runs get keys like `schedule-post-daily-horo#m=5`). Status goes `running` → `ok` / `error`. If a row stays `running`, the invoke likely timed out.
 
 ### Google credentials (local)
 

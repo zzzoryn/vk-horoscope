@@ -17,4 +17,5 @@ const handler = scheduledHandler(async function() {
   await postDailyTilesForSign(name);
 });
 
-exports.handler = schedule('0,1,2,3,4,5,6,7,8,9,10,11 7 * * *', handler);
+// After evening fetch (16:00), before posts (19:00). 17:00 UTC = 20:00 MSK.
+exports.handler = schedule('0,1,2,3,4,5,6,7,8,9,10,11 17 * * *', handler);

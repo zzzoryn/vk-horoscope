@@ -7,11 +7,12 @@ const {getVkForGroup, groupIdFromOwnerId} = require('../utils/getVkGroupToken');
  * Note: after deleting a VK post, the same guid returns the old post_id.
  *
  * @param scope {string}
+ * @param date {string=} label like "25 октября" (defaults to getDate())
  * @return {string}
  */
-const buildPostGuid = function(scope) {
-  const date = getDate().replace(/\s+/g, '-');
-  return `vkhoro-${scope}-${date}`.slice(0, 32);
+const buildPostGuid = function(scope, date) {
+  const dateKey = String(date || getDate()).replace(/\s+/g, '-');
+  return `vkhoro-${scope}-${dateKey}`.slice(0, 32);
 };
 
 const enrichPostResponse = function(response, ownerId) {

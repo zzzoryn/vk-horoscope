@@ -6,4 +6,6 @@ const handler = scheduledHandler(async function() {
   await fetchDailyHoroData();
 });
 
-exports.handler = schedule('0 4 * * *', handler);
+// Evening before tiles/posts (16:00 UTC = 19:00 MSK). Keeps sheet on "tomorrow"
+// overnight so a missed publish can be caught up manually the next calendar day.
+exports.handler = schedule('0 16 * * *', handler);

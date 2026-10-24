@@ -4,7 +4,7 @@ const getDate = require('../utils/getDate');
 const postWallWithPromo = require('./postWallWithPromo');
 const buildPostGuid = postWallWithPromo.buildPostGuid;
 const {isTileFresh} = require('./tileFreshness');
-const {getVkForGroup} = require('../utils/getVkGroupToken');
+const findExistingWallPost = require('./findExistingWallPost');
 
 const COLLAGE_PART_1 = [0, 1, 2, 3, 4, 5];
 const COLLAGE_PART_2 = [6, 7, 8, 9, 10, 11];
@@ -30,27 +30,6 @@ const getSignMessage = function(index, date, rows) {
 &#128176; Бизнес: ${rows[index].business}\n
 &#128139; Постель: ${rows[index].erotic}\n
 #гороскоп #${HOROSCOPES[index].title.toLowerCase()} #любовь #здоровье #бизнес #постель`;
-};
-
-const getWallItems = function(response) {
-  if (Array.isArray(response)) {
-    return response;
-  }
-
-  return response?.items || [];
-};
-
-const findExistingWallPost = async function(groupId, messagePrefix) {
-  const groupVk = await getVkForGroup(groupId);
-  const response = await groupVk.api.wall.get({
-    owner_id: groupId * -1,
-    filter: 'owner',
-    count: 50
-  });
-
-  return getWallItems(response).find(post =>
-    String(post.message || '').startsWith(messagePrefix)
-  );
 };
 
 const assertCollageTilesFresh = function(rows, type, signIndexes, expectedDate) {
@@ -108,13 +87,13 @@ const postCollageSlot = async function(rows, type, part, expectedDate) {
   try {
     existingPost = await findExistingWallPost(type.groupId, message);
   } catch (error) {
-    console.error('postDailyWalls: failed to check existing collage post', {
+    // Fail open: guid still prevents duplicates on repair/retry.
+    console.warn('postDailyWalls: failed to check existing collage post', {
       type: type.name,
       partNumber: part.partNumber,
       code: error.code,
       message: error.message
     });
-    throw error;
   }
 
   if (existingPost) {
@@ -132,7 +111,7 @@ const postCollageSlot = async function(rows, type, part, expectedDate) {
     from_group: 1,
     message,
     attachments: part.signIndexes.map(ind => rows[ind][`${type.name}_image`]),
-    guid: buildPostGuid(`${type.name}-collage-${part.partNumber}`)
+    guid: buildPostGuid(`${type.name}-collage-${part.partNumber}`, expectedDate)
   });
 };
 
@@ -147,12 +126,12 @@ const postSignSlot = async function(rows, index, expectedDate) {
   try {
     existingPost = await findExistingWallPost(horoscope.groupId, messagePrefix);
   } catch (error) {
-    console.error('postDailyWalls: failed to check existing sign post', {
+    // Fail open: guid still prevents duplicates on repair/retry.
+    console.warn('postDailyWalls: failed to check existing sign post', {
       sign: horoscope.name,
       code: error.code,
       message: error.message
     });
-    throw error;
   }
 
   if (existingPost) {
@@ -169,7 +148,7 @@ const postSignSlot = async function(rows, index, expectedDate) {
     from_group: 1,
     message,
     attachments: rows[index].common_image,
-    guid: buildPostGuid(`sign-${horoscope.name}`)
+    guid: buildPostGuid(`sign-${horoscope.name}`, expectedDate)
   });
 };
 
@@ -181,14 +160,18 @@ const postSignSlot = async function(rows, index, expectedDate) {
  * @return {Promise<object>}
  */
 const postDailyWalls = async function(slot) {
-  const expectedDate = getDate();
   const resolved = resolveDailySlot(slot);
 
   const doc = await getSheetDoc();
   const rows = await doc.sheetsByIndex[0].getRows();
 
+  // Prefer sheet content_date so next-day manual catch-up still posts for the
+  // prepared day (evening fetch has not overwritten the sheet yet).
+  const expectedDate = rows[0]?.content_date || getDate();
+
   console.log('postDailyWalls slot', slot, resolved.kind, {
     expectedDate,
+    contentDate: rows[0]?.content_date,
     type: resolved.type?.name,
     part: resolved.part?.partNumber,
     sign: resolved.index != null ? HOROSCOPES[resolved.index].name : undefined

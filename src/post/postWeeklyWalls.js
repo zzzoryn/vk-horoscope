@@ -4,7 +4,7 @@ const postWallWithPromo = require('./postWallWithPromo');
 const {isTileFresh} = require('./tileFreshness');
 const pinWallPost = require('./pinWallPost');
 const {extractPostId} = pinWallPost;
-const {getVkForGroup} = require('../utils/getVkGroupToken');
+const findExistingWallPost = require('./findExistingWallPost');
 
 /** Type slots 0–4 + sign slots 5–16 */
 const WEEKLY_SLOT_COUNT = TYPES.length + HOROSCOPES.length;
@@ -12,27 +12,6 @@ const WEEKLY_SLOT_COUNT = TYPES.length + HOROSCOPES.length;
 const buildWeeklyPostGuid = function(scope, weeklyDate) {
   const dateKey = String(weeklyDate).replace(/\s+/g, '-');
   return `vkhoro-${scope}-${dateKey}`.slice(0, 32);
-};
-
-const getWallItems = function(response) {
-  if (Array.isArray(response)) {
-    return response;
-  }
-
-  return response?.items || [];
-};
-
-const findExistingWallPost = async function(groupId, messagePrefix) {
-  const groupVk = await getVkForGroup(groupId);
-  const response = await groupVk.api.wall.get({
-    owner_id: groupId * -1,
-    filter: 'owner',
-    count: 50
-  });
-
-  return getWallItems(response).find(post =>
-    String(post.message || '').startsWith(messagePrefix)
-  );
 };
 
 const assertWeeklyBgImage = function(rows, type) {
@@ -123,12 +102,12 @@ const postTypeSlot = async function(rows, type, weeklyDate) {
   try {
     existingPost = await findExistingWallPost(type.groupId, messagePrefix);
   } catch (error) {
-    console.error('postWeeklyWalls: failed to check existing type post', {
+    // Fail open: guid still prevents duplicates on repair/retry.
+    console.warn('postWeeklyWalls: failed to check existing type post', {
       type: type.name,
       code: error.code,
       message: error.message
     });
-    throw error;
   }
 
   if (existingPost) {
@@ -174,12 +153,12 @@ const postSignSlot = async function(rows, index, weeklyDate) {
   try {
     existingPost = await findExistingWallPost(horoscope.groupId, messagePrefix);
   } catch (error) {
-    console.error('postWeeklyWalls: failed to check existing sign post', {
+    // Fail open: guid still prevents duplicates on repair/retry.
+    console.warn('postWeeklyWalls: failed to check existing sign post', {
       sign: horoscope.name,
       code: error.code,
       message: error.message
     });
-    throw error;
   }
 
   if (existingPost) {

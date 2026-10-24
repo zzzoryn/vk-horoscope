@@ -17,4 +17,5 @@ const handler = scheduledHandler(async function() {
   await postDailyTilesForSign(name);
 });
 
-exports.handler = schedule('0,1,2,3,4,5,6,7,8,9,10,11 17 * * *', handler);
+// Backup tiles closer to publish. 18:00 UTC = 21:00 MSK.
+exports.handler = schedule('0,1,2,3,4,5,6,7,8,9,10,11 18 * * *', handler);
