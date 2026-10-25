@@ -31,6 +31,6 @@ const handler = scheduledHandler(async function(event) {
     statusCode: 200,
     body: JSON.stringify({ok: true, sign})
   };
-});
+}, {name: 'manual-daily-tiles'});
 
 module.exports = {handler};

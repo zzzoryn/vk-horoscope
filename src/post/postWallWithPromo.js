@@ -1,17 +1,19 @@
 // const {POST_FOOTER, COMMUNITY_COMMENT} = require('./promoTexts');
 const getDate = require('../utils/getDate');
+const asciiDateKey = require('../utils/asciiDateKey');
 const {getVkForGroup, groupIdFromOwnerId} = require('../utils/getVkGroupToken');
 
 /**
- * Stable guid for wall.post idempotency (same day / same week slot).
+ * Stable ASCII guid for wall.post idempotency.
+ * VK may ignore guids with non-ASCII (e.g. "октября") — that caused duplicate posts.
  * Note: after deleting a VK post, the same guid returns the old post_id.
  *
- * @param scope {string}
+ * @param scope {string} short ascii scope, e.g. c-common-1, s-aries
  * @param date {string=} label like "25 октября" (defaults to getDate())
  * @return {string}
  */
 const buildPostGuid = function(scope, date) {
-  const dateKey = String(date || getDate()).replace(/\s+/g, '-');
+  const dateKey = asciiDateKey(date || getDate());
   return `vkhoro-${scope}-${dateKey}`.slice(0, 32);
 };
 

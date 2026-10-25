@@ -32,7 +32,8 @@ const postTileImage = async function(type, name, isWeekly, options = {}) {
     rows = await sheet.getRows();
   }
 
-  const date = isWeekly ? rows[0].date : getDate();
+  // Daily tiles follow sheet content_date (evening prep); fallback to getDate().
+  const date = isWeekly ? rows[0].date : (rows[0].content_date || getDate());
 
   const horoscope = HOROSCOPES
     .map((item, index) => Object.assign({}, item, {index}))

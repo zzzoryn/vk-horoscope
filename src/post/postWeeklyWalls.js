@@ -1,6 +1,7 @@
 const getSheetDoc = require('../utils/getSheetDoc');
 const {TYPES, HOROSCOPES} = require('../constants');
 const postWallWithPromo = require('./postWallWithPromo');
+const buildPostGuid = postWallWithPromo.buildPostGuid;
 const {isTileFresh} = require('./tileFreshness');
 const pinWallPost = require('./pinWallPost');
 const {extractPostId} = pinWallPost;
@@ -8,11 +9,6 @@ const findExistingWallPost = require('./findExistingWallPost');
 
 /** Type slots 0–4 + sign slots 5–16 */
 const WEEKLY_SLOT_COUNT = TYPES.length + HOROSCOPES.length;
-
-const buildWeeklyPostGuid = function(scope, weeklyDate) {
-  const dateKey = String(weeklyDate).replace(/\s+/g, '-');
-  return `vkhoro-${scope}-${dateKey}`.slice(0, 32);
-};
 
 const assertWeeklyBgImage = function(rows, type) {
   if (rows[0][`${type.name}_bg_image`]) {
@@ -132,7 +128,7 @@ const postTypeSlot = async function(rows, type, weeklyDate) {
     from_group: 1,
     message,
     attachments: rows[0][`${type.name}_bg_image`],
-    guid: buildWeeklyPostGuid(`weekly-${type.name}-summary`, weeklyDate)
+    guid: buildPostGuid(`w-${type.name}`, weeklyDate)
   }, type.groupId);
 
   return Object.assign({}, response, {
@@ -183,7 +179,7 @@ const postSignSlot = async function(rows, index, weeklyDate) {
     from_group: 1,
     message,
     attachments: rows[index].common_image,
-    guid: buildWeeklyPostGuid(`weekly-sign-${horoscope.name}`, weeklyDate)
+    guid: buildPostGuid(`ws-${horoscope.name}`, weeklyDate)
   }, horoscope.groupId);
 
   return Object.assign({}, response, {

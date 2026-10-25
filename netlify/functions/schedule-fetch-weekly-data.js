@@ -4,6 +4,6 @@ const fetchWeeklyHoroData = require('../../src/fetch/fetchWeeklyHoroData');
 
 const handler = scheduledHandler(async function() {
   await fetchWeeklyHoroData();
-});
+}, {name: 'schedule-fetch-weekly-data'});
 
 exports.handler = schedule('15 4 * * 0', handler);

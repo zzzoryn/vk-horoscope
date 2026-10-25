@@ -106,6 +106,6 @@ const handler = scheduledHandler(async function(event) {
       bgTypes: TYPES.map(item => item.name)
     })
   };
-});
+}, {name: 'manual-weekly-tiles'});
 
 module.exports = {handler};

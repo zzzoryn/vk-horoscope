@@ -15,11 +15,12 @@ const parseBody = function(body) {
 
 /**
  * @param fn {(event?: object) => Promise<*>}
+ * @param options {{ name?: string, minuteKey?: boolean }}
  * @return {(event?: object) => Promise<{statusCode: number, body?: string}>}
  */
-const scheduledHandler = function(fn) {
+const scheduledHandler = function(fn, options = {}) {
   return async function(event) {
-    const logName = resolveFunctionLogName(event);
+    const logName = resolveFunctionLogName(event, options);
     const startedAt = Date.now();
 
     await writeFunctionLog({

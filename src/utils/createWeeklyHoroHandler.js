@@ -7,7 +7,7 @@ const {WEEKLY_SLOT_COUNT} = postWeeklyWalls;
  */
 const createWeeklyHoroHandler = function() {
   return scheduledHandler(async function() {
-    const slot = new Date().getMinutes();
+    const slot = new Date().getUTCMinutes();
 
     if (slot >= WEEKLY_SLOT_COUNT) {
       return;
@@ -15,7 +15,7 @@ const createWeeklyHoroHandler = function() {
 
     console.log('post-weekly-horo slot', slot);
     await postWeeklyWalls(slot);
-  });
+  }, {name: 'schedule-post-weekly-horo', minuteKey: true});
 };
 
 module.exports = createWeeklyHoroHandler;

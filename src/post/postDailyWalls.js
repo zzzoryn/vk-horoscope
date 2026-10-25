@@ -111,7 +111,7 @@ const postCollageSlot = async function(rows, type, part, expectedDate) {
     from_group: 1,
     message,
     attachments: part.signIndexes.map(ind => rows[ind][`${type.name}_image`]),
-    guid: buildPostGuid(`${type.name}-collage-${part.partNumber}`, expectedDate)
+    guid: buildPostGuid(`c-${type.name}-${part.partNumber}`, expectedDate)
   });
 };
 
@@ -148,7 +148,7 @@ const postSignSlot = async function(rows, index, expectedDate) {
     from_group: 1,
     message,
     attachments: rows[index].common_image,
-    guid: buildPostGuid(`sign-${horoscope.name}`, expectedDate)
+    guid: buildPostGuid(`s-${horoscope.name}`, expectedDate)
   });
 };
 

@@ -32,6 +32,6 @@ const handler = scheduledHandler(async function(event) {
     statusCode: 200,
     body: JSON.stringify({ok: true, slot, result})
   };
-});
+}, {name: 'manual-weekly-horo'});
 
 module.exports = {handler};

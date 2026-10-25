@@ -68,14 +68,26 @@ const writeFunctionLog = async function(entry) {
   }
 };
 
+const extractNameFromEventPath = function(event) {
+  const path = event?.path || event?.rawUrl || event?.headers?.['x-forwarded-url'] || '';
+  const match = String(path).match(/\/(?:\.netlify\/)?functions\/([^/?#]+)/);
+  return match ? match[1] : null;
+};
+
 /**
- * Build a stable log row key for Netlify functions (one row per function or per slot).
+ * Build a stable log row key for Netlify functions.
  *
  * @param event {object=}
+ * @param options {{ name?: string, minuteKey?: boolean }}
  * @return {string}
  */
-const resolveFunctionLogName = function(event) {
-  const base = process.env.AWS_LAMBDA_FUNCTION_NAME || 'function';
+const resolveFunctionLogName = function(event, options = {}) {
+  const base =
+    options.name ||
+    extractNameFromEventPath(event) ||
+    process.env.AWS_LAMBDA_FUNCTION_NAME ||
+    'function';
+
   const params = event?.queryStringParameters || {};
 
   if (params.slot != null && params.slot !== '') {
@@ -90,7 +102,7 @@ const resolveFunctionLogName = function(event) {
     return `${base}#bg=${params.bg}`;
   }
 
-  if (/(tile-image|daily-horo|weekly-horo)/.test(base)) {
+  if (options.minuteKey) {
     return `${base}#m=${new Date().getUTCMinutes()}`;
   }
 

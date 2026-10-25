@@ -20,8 +20,8 @@ Daily sheet is filled **in the evening before posts**, so if publish fails you c
 | Cron | Function | MSK |
 |------|----------|-----|
 | `0 16 * * *` | `schedule-fetch-daily-data` (texts + `content_date`) | 19:00 |
-| `0-11 17 * * *` | `schedule-post-daily-tile-image` (1 sign × 5 types / min) | 20:00 |
-| `0-11 18 * * *` | `schedule-post-daily-tile-image-pm` (backup tiles) | 21:00 |
+| `0-59 17 * * *` | `schedule-post-daily-tile-image` (1 tile / min = sign×type) | 20:00 |
+| `0-59 18 * * *` | `schedule-post-daily-tile-image-pm` (backup same 60 slots) | 21:00 |
 | `0-21 19,20 * * *` | `schedule-post-daily-horo` (1 post / min; 20:xx = repair) | 22:00 / 23:00 |
 | Sun `15 4 * * 0` | `schedule-fetch-weekly-data` | вс 07:15 |
 | Sun `0-16 6 * * 0` | `schedule-post-weekly-tile-image` | вс 09:00 |
@@ -58,7 +58,9 @@ Create a sheet tab named **`logs`** (or set `FUNCTION_LOGS_SHEET`) with header r
 
 `function | updated_at | status | status_code | message | detail`
 
-Each Netlify function upserts its row (slot/minute runs get keys like `schedule-post-daily-horo#m=5`). Status goes `running` → `ok` / `error`. If a row stays `running`, the invoke likely timed out.
+Each Netlify function upserts its row with a readable name (e.g. `schedule-post-daily-horo#m=5`). Status goes `running` → `ok` / `error`. If a row stays `running`, the invoke likely timed out.
+
+Wall `guid` values are ASCII-only (Cyrillic dates broke VK dedupe and caused duplicate posts).
 
 ### Google credentials (local)
 
