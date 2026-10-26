@@ -103,7 +103,9 @@ const resolveFunctionLogName = function(event, options = {}) {
   }
 
   if (options.minuteKey) {
-    return `${base}#m=${new Date().getUTCMinutes()}`;
+    const now = new Date();
+    // Include hour so 19:xx and 20:xx (or tile 17/18) do not overwrite each other.
+    return `${base}#h=${now.getUTCHours()}&m=${now.getUTCMinutes()}`;
   }
 
   return base;

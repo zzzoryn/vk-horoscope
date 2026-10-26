@@ -78,23 +78,29 @@ const resolveDailySlot = function(slot) {
   };
 };
 
+const lookupExistingOrThrow = async function(groupId, messagePrefix, meta) {
+  try {
+    return await findExistingWallPost(groupId, messagePrefix);
+  } catch (error) {
+    console.error('postDailyWalls: existing-post check failed', {
+      ...meta,
+      code: error.code,
+      message: error.message
+    });
+    // Fail closed: do not post if we cannot prove the wall is clear (avoids duplicates).
+    throw error;
+  }
+};
+
 const postCollageSlot = async function(rows, type, part, expectedDate) {
   assertCollageTilesFresh(rows, type, part.signIndexes, expectedDate);
 
   const message = getCollageMessage(type, part.partNumber, expectedDate);
-  let existingPost;
-
-  try {
-    existingPost = await findExistingWallPost(type.groupId, message);
-  } catch (error) {
-    // Fail open: guid still prevents duplicates on repair/retry.
-    console.warn('postDailyWalls: failed to check existing collage post', {
-      type: type.name,
-      partNumber: part.partNumber,
-      code: error.code,
-      message: error.message
-    });
-  }
+  const existingPost = await lookupExistingOrThrow(type.groupId, message, {
+    kind: 'collage',
+    type: type.name,
+    partNumber: part.partNumber
+  });
 
   if (existingPost) {
     console.log('postDailyWalls: collage already exists', {
@@ -103,7 +109,13 @@ const postCollageSlot = async function(rows, type, part, expectedDate) {
       postId: existingPost.id
     });
 
-    return {post_id: existingPost.id, skipped: true, kind: 'collage'};
+    return {
+      post_id: existingPost.id,
+      owner_id: type.groupId * -1,
+      wall_url: `https://vk.com/wall-${type.groupId}_${existingPost.id}`,
+      skipped: true,
+      kind: 'collage'
+    };
   }
 
   return postWallWithPromo({
@@ -121,18 +133,10 @@ const postSignSlot = async function(rows, index, expectedDate) {
   const horoscope = HOROSCOPES[index];
   const message = getSignMessage(index, expectedDate, rows);
   const messagePrefix = `Гороскоп на ${expectedDate}`;
-  let existingPost;
-
-  try {
-    existingPost = await findExistingWallPost(horoscope.groupId, messagePrefix);
-  } catch (error) {
-    // Fail open: guid still prevents duplicates on repair/retry.
-    console.warn('postDailyWalls: failed to check existing sign post', {
-      sign: horoscope.name,
-      code: error.code,
-      message: error.message
-    });
-  }
+  const existingPost = await lookupExistingOrThrow(horoscope.groupId, messagePrefix, {
+    kind: 'sign',
+    sign: horoscope.name
+  });
 
   if (existingPost) {
     console.log('postDailyWalls: sign post already exists', {
@@ -140,7 +144,13 @@ const postSignSlot = async function(rows, index, expectedDate) {
       postId: existingPost.id
     });
 
-    return {post_id: existingPost.id, skipped: true, kind: 'sign'};
+    return {
+      post_id: existingPost.id,
+      owner_id: horoscope.groupId * -1,
+      wall_url: `https://vk.com/wall-${horoscope.groupId}_${existingPost.id}`,
+      skipped: true,
+      kind: 'sign'
+    };
   }
 
   return postWallWithPromo({

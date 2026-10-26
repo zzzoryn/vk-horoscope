@@ -22,6 +22,10 @@ const getWallItems = function(response) {
   return response?.items || [];
 };
 
+const normalizeMessage = function(text) {
+  return String(text || '').replace(/\s+/g, ' ').trim();
+};
+
 /**
  * Look up an existing owner post by message prefix.
  * Uses the user token — community tokens often cannot wall.get reliably.
@@ -31,14 +35,15 @@ const getWallItems = function(response) {
  * @return {Promise<object|undefined>}
  */
 const findExistingWallPost = async function(groupId, messagePrefix) {
+  const prefix = normalizeMessage(messagePrefix);
   const response = await getUserVk().api.wall.get({
     owner_id: groupId * -1,
     filter: 'owner',
-    count: 50
+    count: 100
   });
 
   return getWallItems(response).find(post =>
-    String(post.message || '').startsWith(messagePrefix)
+    normalizeMessage(post.message).startsWith(prefix)
   );
 };
 
