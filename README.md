@@ -25,7 +25,7 @@ Daily sheet is filled **in the evening before posts**, so if publish fails you c
 | `0-21 19 * * *` | `schedule-post-daily-horo` (1 post / min; no 20:xx — it duplicated posts) | 22:00 |
 | Sun `15 4 * * 0` | `schedule-fetch-weekly-data` | вс 07:15 |
 | Sun `0-16 6 * * 0` | `schedule-post-weekly-tile-image` | вс 09:00 |
-| Sun+Mon `0-16 18 * * 0,1` | `schedule-post-weekly-horo` (1 post+pin / min; Mon = repair) | 21:00 |
+| Sun `0-16 18 * * 0` | `schedule-post-weekly-horo` (1 post+pin / min; no Mon — it duplicated) | вс 21:00 |
 
 MSK = UTC+3.
 

@@ -6,7 +6,9 @@ const {WEEKLY_SLOT_COUNT} = postWeeklyWalls;
 /**
  * One type/sign weekly post (+ pin) per minute.
  * Slots 0–4 type groups, 5–16 signs.
- * Sunday primary, Monday repair (ASCII guid + wall check skip duplicates).
+ *
+ * Sunday only — Monday "repair" duplicated weekly posts (same issue as daily 20:xx).
+ * Missed slots: manual-weekly-horo?slot=…
  */
 const handler = scheduledHandler(async function() {
   const slot = new Date().getUTCMinutes();
@@ -20,6 +22,6 @@ const handler = scheduledHandler(async function() {
 }, {name: 'schedule-post-weekly-horo', minuteKey: true});
 
 exports.handler = schedule(
-  '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 18 * * 0,1',
+  '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 18 * * 0',
   handler
 );
